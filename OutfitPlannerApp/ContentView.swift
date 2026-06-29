@@ -13,9 +13,9 @@ import PhotosUI
 class AppData {
     var clothingItems: [ClothingItem] = []
     
-    var currentWeekOutfitPlan: WeekOutfitPlan?
+    var currentWeekOutfitPlan: [Outfit] = []
     
-    init(clothingItems: [ClothingItem], currentWeekOutfitPlan: WeekOutfitPlan?) {
+    init(clothingItems: [ClothingItem], currentWeekOutfitPlan: [Outfit]) {
         self.clothingItems = clothingItems
         self.currentWeekOutfitPlan = currentWeekOutfitPlan
     }
@@ -31,7 +31,7 @@ struct ContentView: View {
         } else { //if theres no save
             ProgressView() // literally just a spinning circle to show the app is doing something
                 .task {
-                    let newSave = AppData(clothingItems: [], currentWeekOutfitPlan: nil) // creating a new save
+                    let newSave = AppData(clothingItems: [], currentWeekOutfitPlan: []) // creating a new save
                     context.insert(newSave) // adding the new save
                 }
         }
@@ -39,5 +39,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    HomeView(appData: AppData(clothingItems: [], currentWeekOutfitPlan: nil))
+    HomeView(appData: AppData(clothingItems: [], currentWeekOutfitPlan: []))
 }

@@ -32,54 +32,12 @@ struct HomeView: View {
             }
             
             Button {
-                appData.currentWeekOutfitPlan = generateWeekOutfitPlan(clothingItems: appData.clothingItems)
-            } label: {
-                Text("test rebuild")
-            }
-            
-            Button {
                 newClothingItemSheetIsPresented.toggle()
             } label: {
                 Text("new clothing item")
             }
-
-
-            
             let weekOutfitPlan = appData.currentWeekOutfitPlan
-
-            Text((weekOutfitPlan?.mondayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.mondayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.mondayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.tuesdayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.tuesdayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.tuesdayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.wednesdayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.wednesdayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.wednesdayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.thursdayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.thursdayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.thursdayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.fridayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.fridayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.fridayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.saturdayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.saturdayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.saturdayOutfit?.footwear.name ?? "nil"))
-            Spacer()
-
-            Text((weekOutfitPlan?.sundayOutfit?.top.name ?? "nil"))
-            Text((weekOutfitPlan?.sundayOutfit?.bottom.name ?? "nil"))
-            Text((weekOutfitPlan?.sundayOutfit?.footwear.name ?? "nil"))
+            
 
             
         }
@@ -88,19 +46,19 @@ struct HomeView: View {
             NewClothingItemView(appData: appData)
         }
         
-        .onChange(of: scenePhase) { _, newPhase in
-            print("onChange opened - Scene phase changed to:", newPhase)
-            
-            if newPhase == .active {
-                if (calendar.component(.weekOfMonth, from: Date()) != weekOfMonthLastOpened) {
-                    print("Week of month changed.")
-                    appData.currentWeekOutfitPlan = generateWeekOutfitPlan(clothingItems: appData.clothingItems)
-                }
-
-                weekOfMonthLastOpened = calendar.component(.weekOfMonth, from: Date())
-                print("New week of month: \(weekOfMonthLastOpened)")
-            }
-        }
+//        .onChange(of: scenePhase) { _, newPhase in
+//            print("onChange opened - Scene phase changed to:", newPhase)
+//            
+//            if newPhase == .active {
+//                if (calendar.component(.weekOfMonth, from: Date()) != weekOfMonthLastOpened) {
+//                    print("Week of month changed.")
+//                    appData.currentWeekOutfitPlan = generateWeekOutfitPlan(clothingItems: appData.clothingItems).outfitPlan
+//                }
+//
+//                weekOfMonthLastOpened = calendar.component(.weekOfMonth, from: Date())
+//                print("New week of month: \(weekOfMonthLastOpened)")
+//            }
+//        }
     }
 }
 
@@ -197,5 +155,5 @@ struct HomeView: View {
 //        ClothingItem(name: "Asymmetrical Red Blouse", style: .avantGarde, colour: .red, type: .top),
 //        ClothingItem(name: "Metallic Orange Sunglasses", style: .eclectic, colour: .orange, type: .accessory),
 //        ClothingItem(name: "Purple Velvet Jumpsuit", style: .eclectic, colour: .purple, type: .onePiece)
-    ], currentWeekOutfitPlan: nil))
+    ], currentWeekOutfitPlan: []))
 }
