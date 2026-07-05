@@ -13,11 +13,11 @@ import PhotosUI
 class AppData {
     var clothingItems: [ClothingItem] = []
     
-    var currentWeekOutfitPlan: [Outfit] = []
+    var currentOutfitPlan: [Outfit] = []
     
     init(clothingItems: [ClothingItem], currentWeekOutfitPlan: [Outfit]) {
         self.clothingItems = clothingItems
-        self.currentWeekOutfitPlan = currentWeekOutfitPlan
+        self.currentOutfitPlan = currentWeekOutfitPlan
     }
 }
 

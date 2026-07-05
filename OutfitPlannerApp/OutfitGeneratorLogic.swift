@@ -139,6 +139,10 @@ class ClothingItem {
         self.type = type
 //        self.attire = attire
     }
+    
+    var description: String {
+        return "(Name: \(name), Style: \(style.rawValue), Colour: \(colour.rawValue))"
+    }
 }
 
 @Model
@@ -152,6 +156,10 @@ class Outfit {
         self.footwear = footwear
         self.top = top
         self.bottom = bottom
+    }
+    
+    var description: String {
+        return "(Top: \(top.description), Bottom: \(bottom.description), Footwear: \(footwear.description)"
     }
 }
 
@@ -368,7 +376,7 @@ struct OutfitIndex {
     let index: Int
 }
 
-func generateDailyOutfitAI(clothingItems: [ClothingItem], previousOutfits: [Outfit]) -> Outfit? {
+func generateDailyOutfitAI(clothingItems: [ClothingItem], previousOutfits: [Outfit]) async -> Outfit? {
         //    let groupedClothingItems = Dictionary(grouping: clothingItems, by: { $0.type }) // what this line does is create a dictionary of all clothing items grouped by their clothing type.
     
     var tops: [ClothingItem] = []
@@ -392,28 +400,30 @@ func generateDailyOutfitAI(clothingItems: [ClothingItem], previousOutfits: [Outf
     let model = SystemLanguageModel.default
     let session = LanguageModelSession()
     var randomOutfitCombinations: [Outfit] = []
+    var randomOutfitCombinationStrings: [String] = []
     
     print(model.isAvailable ? "Model is avaliable" : "Model is not avaliable")
     
     if model.isAvailable == true {
         
         for _ in 1...8 {
-            randomOutfitCombinations.append(Outfit(top: tops.randomElement()!, bottom: bottoms.randomElement()!, accessories: [], footwear: footwear.randomElement()!))
+            let randomOutfit = Outfit(top: tops.randomElement()!, bottom: bottoms.randomElement()!, accessories: [], footwear: footwear.randomElement()!)
+            randomOutfitCombinations.append(randomOutfit)
+            randomOutfitCombinationStrings.append(randomOutfit.description)
         }
         
-        Task {
-            do {
-                let prompt = "Here are some outfit choices: \(randomOutfitCombinations.description). You are a professional outfit designer. Return ONLY a number representing the index (starting from 0) of the outfit that you decide is most fashionable."
-                print(prompt)
-                
-                let response = try await session.respond(to: prompt, generating: OutfitIndex.self)
-                
-                return randomOutfitCombinations[response.content.index]
-            } catch {
-                print("failed : \(error)")
-            }
-            return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
+        do {
+            let prompt = "Here are some outfit choices: \(randomOutfitCombinationStrings). You are a professional outfit designer. Return ONLY a number representing the index (starting from 0) of the outfit that you decide is most fashionable."
+            print(prompt)
+            
+            let response = try await session.respond(to: prompt, generating: OutfitIndex.self)
+            
+            return randomOutfitCombinations[response.content.index]
+        } catch {
+            print("failed : \(error)")
         }
+        return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
+        
     }
     print("Model is not avaliable \(model.availability)")
     return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
