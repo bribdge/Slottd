@@ -129,14 +129,16 @@ class ClothingItem {
     var style: ClothingStyle
     var colour: ClothingColor
     var type: ClothingType
+    var image: Data?
 //    var attire: ClothingAttire
     
-    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType/*, attire: ClothingAttire*/) {
+    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType, image: Data?/*, attire: ClothingAttire*/) {
 //        self.image = image
         self.name = name
         self.style = style
         self.colour = colour
         self.type = type
+        self.image = image
 //        self.attire = attire
     }
     
