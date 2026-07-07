@@ -141,8 +141,8 @@ class ClothingItem {
     }
     
     var description: String {
-        return "(Name: \(name), Style: \(style.rawValue), Colour: \(colour.rawValue))"
-    }
+        "\(name) (\(style.rawValue), \(colour.rawValue))"
+        }
 }
 
 @Model
@@ -159,7 +159,7 @@ class Outfit {
     }
     
     var description: String {
-        return "(Top: \(top.description), Bottom: \(bottom.description), Footwear: \(footwear.description)"
+        return "Top:\(top.description) | Bottom:\(bottom.description) | Footwear:\(footwear.description) "
     }
 }
 
@@ -400,20 +400,49 @@ func generateDailyOutfitAI(clothingItems: [ClothingItem], previousOutfits: [Outf
     let model = SystemLanguageModel.default
     let session = LanguageModelSession()
     var randomOutfitCombinations: [Outfit] = []
-    var randomOutfitCombinationStrings: [String] = []
-    
-    print(model.isAvailable ? "Model is avaliable" : "Model is not avaliable")
+    var randomOutfitCombinationDescriptions: [String] = []
     
     if model.isAvailable == true {
         
-        for _ in 1...8 {
+    for _ in 1...8 {
+        var count = 25
+        inner: while true {
+            count -= 1
+            if count <= 0 {
+                print("Unque outfit not found. defaulting to AI choice.")
+                break inner
+            }
+            
             let randomOutfit = Outfit(top: tops.randomElement()!, bottom: bottoms.randomElement()!, accessories: [], footwear: footwear.randomElement()!)
+            
+            for outfit in previousOutfits {
+                if outfit.top == randomOutfit.top || outfit.bottom == randomOutfit.bottom || outfit.footwear == randomOutfit.footwear || colourDoesClash(colour1: randomOutfit.top.colour, colour2: randomOutfit.bottom.colour) || styleDoesClash(style1: randomOutfit.top.style, style2: randomOutfit.bottom.style) {
+                    continue inner
+                }
+            }
+            
             randomOutfitCombinations.append(randomOutfit)
-            randomOutfitCombinationStrings.append(randomOutfit.description)
+            randomOutfitCombinationDescriptions.append(randomOutfit.description)
+            break inner
+            }
         }
         
+        let formattedOutfits = randomOutfitCombinationDescriptions.enumerated() // .enumerated adds the ability to show the index as well. $0.offset is the index and $0.element is the actual item
+            .map { "[\($0.offset)] \($0.element)" }
+            .joined(separator: "\n")
+        
         do {
-            let prompt = "Here are some outfit choices: \(randomOutfitCombinationStrings). You are a professional outfit designer. Return ONLY a number representing the index (starting from 0) of the outfit that you decide is most fashionable."
+            print(randomOutfitCombinations.count)
+            let prompt = """
+                You are a professional fashion design AI. Your task is to analyze a list of outfits and select the single best option.
+
+                CRITERIA FOR "FASHIONABLE":
+                - Color Harmony: Look for complementary colors or intentional tonal palettes.
+                - Style Cohesion: High marks for pieces that share a cohesive aesthetic (e.g., Minimalist + Minimalist, Retro + Bohemian). Avoid jarring style clashes (e.g., Avant Garde + Sporty).
+            
+            \(formattedOutfits) 
+            """
+
             print(prompt)
             
             let response = try await session.respond(to: prompt, generating: OutfitIndex.self)
@@ -421,9 +450,8 @@ func generateDailyOutfitAI(clothingItems: [ClothingItem], previousOutfits: [Outf
             return randomOutfitCombinations[response.content.index]
         } catch {
             print("failed : \(error)")
+            return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
         }
-        return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
-        
     }
     print("Model is not avaliable \(model.availability)")
     return generateDailyOutfit(clothingItems: clothingItems, previousOutfits: previousOutfits)!
@@ -450,7 +478,7 @@ func generateDailyOutfit(clothingItems: [ClothingItem], previousOutfits: [Outfit
         return nil
     }
         
-    var count = 5
+    var count = 50
     while true {
             
         
