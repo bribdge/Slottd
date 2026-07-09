@@ -14,6 +14,6 @@ struct OutfitPlannerAppApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: AppData.self)
+        .modelContainer(for: [ClothingItem.self, Outfit.self])
     }
 }

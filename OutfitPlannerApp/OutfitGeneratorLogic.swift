@@ -129,10 +129,14 @@ class ClothingItem {
     var style: ClothingStyle
     var colour: ClothingColor
     var type: ClothingType
-    var image: Data?
+    @Attribute(.externalStorage) var image: Data? // @Attribute() tells SwiftData that the images are large and should only be loaded when needed to keep the app quick
+    var outfitsAsTop: [Outfit]?
+    var outfitsAsBottom: [Outfit]?
+    var outfitsAsAccessory: [Outfit]?
+    var outfitsAsFootwear: [Outfit]?
 //    var attire: ClothingAttire
     
-    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType, image: Data?/*, attire: ClothingAttire*/) {
+    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType, image: Data?, parentOutfits: [Outfit]?/*, attire: ClothingAttire*/) {
 //        self.image = image
         self.name = name
         self.style = style
@@ -149,10 +153,10 @@ class ClothingItem {
 
 @Model
 class Outfit {
-    var top: ClothingItem
-    var bottom: ClothingItem
-    var accessories: [ClothingItem] = []
-    var footwear: ClothingItem
+    @Relationship(inverse: \ClothingItem.outfitsAsTop) var top: ClothingItem
+    @Relationship(inverse: \ClothingItem.outfitsAsBottom) var bottom: ClothingItem
+    @Relationship(inverse: \ClothingItem.outfitsAsFootwear) var accessories: [ClothingItem] = []
+    @Relationship(inverse: \ClothingItem.outfitsAsAccessory) var footwear: ClothingItem
     init(top: ClothingItem, bottom: ClothingItem, accessories: [ClothingItem], footwear: ClothingItem) {
         self.accessories = accessories
         self.footwear = footwear
@@ -374,7 +378,7 @@ func styleDoesClash(style1: ClothingStyle, style2: ClothingStyle) -> Bool {
 
 @Generable()
 struct OutfitIndex {
-    @Guide(description: "The index of the outfit you have chosen.", .range(0...10))
+    @Guide(description: "The index of the outfit you have chosen.", .range(0...8))
     let index: Int
 }
 
@@ -503,66 +507,3 @@ func generateDailyOutfit(clothingItems: [ClothingItem], previousOutfits: [Outfit
     return nil
         
 }
-
-//@Model
-//class WeekOutfitPlan {
-//    var mondayOutfit: Outfit?
-//    var tuesdayOutfit: Outfit?
-//    var wednesdayOutfit: Outfit?
-//    var thursdayOutfit: Outfit?
-//    var fridayOutfit: Outfit?
-//    var saturdayOutfit: Outfit?
-//    var sundayOutfit: Outfit?
-//    
-//    init(mondayOutfit: Outfit?, tuesdayOutfit: Outfit?, wednesdayOutfit: Outfit?, thursdayOutfit: Outfit?, fridayOutfit: Outfit?, saturdayOutfit: Outfit?, sundayOutfit: Outfit?) {
-//        self.mondayOutfit = mondayOutfit
-//        self.tuesdayOutfit = tuesdayOutfit
-//        self.wednesdayOutfit = wednesdayOutfit
-//        self.thursdayOutfit = thursdayOutfit
-//        self.fridayOutfit = fridayOutfit
-//        self.saturdayOutfit = saturdayOutfit
-//        self.sundayOutfit = sundayOutfit
-//    }
-//}
-//
-//func generateWeekOutfitPlan(clothingItems: [ClothingItem]) -> (outfitPlan: WeekOutfitPlan, status: String) {
-//    var previousOutfits: [Outfit?] = []
-//    
-//    var outfitNotComplete = false
-//    
-//    for _ in 1...7 { // for each day of the week
-//        var count = 50
-//        
-//    outer:
-//        while true {
-//            count -= 1
-//            
-//            if count <= 0 {
-//                print("Outfit generation failed.")
-//                if !outfitNotComplete { outfitNotComplete = true }
-//                previousOutfits.append(nil)
-//                break outer
-//            }
-//            
-//            let randomOutfit = generateDailyOutfit(clothingItems: clothingItems)
-//            
-//            if randomOutfit == nil {
-//                previousOutfits.append(nil)
-//                break outer
-//            }
-//            
-//            for outfit in previousOutfits {
-//                if randomOutfit?.top == outfit?.top || randomOutfit?.bottom == outfit?.bottom || randomOutfit?.footwear == outfit?.footwear {
-//                    continue outer
-//
-//                }
-//            }
-//            
-//            previousOutfits.insert(randomOutfit, at: previousOutfits.count)
-//            break
-//        }
-//    }
-//    
-//    return (WeekOutfitPlan(mondayOutfit: previousOutfits[0], tuesdayOutfit: previousOutfits[1], wednesdayOutfit: previousOutfits[2], thursdayOutfit: previousOutfits[3], fridayOutfit: previousOutfits[4], saturdayOutfit: previousOutfits[5], sundayOutfit: previousOutfits[6]), outfitNotComplete ? "Your outfit plan could not be fully completed. Try adding some more clothing items." : "")
-//    
-//}

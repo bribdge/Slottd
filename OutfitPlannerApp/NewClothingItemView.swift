@@ -7,11 +7,19 @@
 
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct NewClothingItemView: View {
-    var appData: AppData
+    @Environment(\.dismiss) private var dismiss
     
-    @State private var returningClothingItem: ClothingItem = ClothingItem(name: "", style: .minimalist, colour: .lightBlue, type: .top, image: nil)
+    @Query private var clothingItems: [ClothingItem]
+    @Environment(\.modelContext) private var context
+    
+    @State private var name: String = ""
+    @State private var style: ClothingStyle = .minimalist
+    @State private var colour: ClothingColor = .lightBlue
+    @State private var type: ClothingType = .top
+    @State private var imageData: Data? = nil
     
     @State private var showPopup = false
     
@@ -20,20 +28,20 @@ struct NewClothingItemView: View {
         VStack {
             List {
                 Section("Clothing Item Name") {
-                    TextField("Name", text: $returningClothingItem.name)
+                    TextField("Name", text: $name)
                 }
                 Section("Clothing Item Info") {
-                    Picker("Type", selection: $returningClothingItem.type) {
+                    Picker("Type", selection: $type) {
                         ForEach(ClothingType.allCases) { type in
                             Text(type.rawValue.capitalized)
                         }
                     }
-                    Picker("Style", selection: $returningClothingItem.style) {
+                    Picker("Style", selection: $style) {
                         ForEach(ClothingStyle.allCases) { style in
                             Text(style.rawValue.capitalized)
                         }
                     }
-                    Picker("Color", selection: $returningClothingItem.colour) {
+                    Picker("Color", selection: $colour) {
                         ForEach(ClothingColor.allCases) { color in
                             Text(color.rawValue.capitalized)
                         }
@@ -41,7 +49,7 @@ struct NewClothingItemView: View {
                 }
                 Section("Clothing Image") {
                     
-                    if let selectedImageData = returningClothingItem.image,
+                    if let selectedImageData = imageData,
                         let uiImage = UIImage(data: selectedImageData) {
                         Image(uiImage: uiImage)
                             .resizable()
@@ -64,10 +72,10 @@ struct NewClothingItemView: View {
 //                        }
 //                    }
                     
-                    if (returningClothingItem.image != nil) {
+                    if (imageData != nil) {
                         Button {
                             withAnimation(.easeInOut) {
-                                returningClothingItem.image = nil
+                                imageData = nil
                             }
                         } label: {
                             Label("Remove Image", systemImage: "xmark")
@@ -80,26 +88,47 @@ struct NewClothingItemView: View {
             }
             
         }
-        .navigationTitle("Create ToDo")
+        .navigationTitle("New Clothing Item")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Dismiss") {
+                    dismiss()
                 }
             }
             
             ToolbarItem(placement: .primaryAction) {
                 Button("Done") {
+                    // 1. Create it cleanly using the form's local state
+                    let itemToSave = ClothingItem(
+                        name: name,
+                        style: style,
+                        colour: colour,
+                        type: type,
+                        image: imageData,
+                        parentOutfits: []
+                    )
+
+                    context.insert(itemToSave)
+                    
+                    try? context.save()
+                    
+                    print(clothingItems)
+
+                    dismiss()
                 }
             }
         }
         .task(id: selectedItem) {
             if let data = try? await selectedItem?.loadTransferable(type: Data.self) {
-                returningClothingItem.image = data
+                imageData = data
             }
         }
     }
 }
 
 #Preview {
-    NewClothingItemView(appData: AppData(clothingItems: [], currentWeekOutfitPlan: []))
+    NavigationStack {
+        NewClothingItemView()
+    }
 }
