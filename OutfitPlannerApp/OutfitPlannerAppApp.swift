@@ -8,6 +8,13 @@
 import SwiftUI
 import SwiftData
 
+@Model
+class AppData {
+    init() {
+        
+    }
+}
+
 @main
 struct OutfitPlannerAppApp: App {
     var body: some Scene {

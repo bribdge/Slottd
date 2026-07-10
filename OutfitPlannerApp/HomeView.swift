@@ -7,10 +7,12 @@
 
 import SwiftUI
 import Foundation
-import _SwiftData_SwiftUI
+import SwiftData
 
 struct HomeView: View {
     @Query private var clothingItems: [ClothingItem]
+    @Query private var outfits: [Outfit]
+    @Environment(\.modelContext) private var context
     
     var calendar = Calendar.current
     
@@ -21,22 +23,27 @@ struct HomeView: View {
     
     var body: some View {
         VStack() {
-            ForEach(clothingItems) { item in
-                Text(item.name)
-                if item.image != nil {
-                    if let image = UIImage(data: item.image!) {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 50)
-                    } else {
-                        ProgressView()
-                    }
-                }
-            }
             
-            Spacer()
+            Button {
+                Task {
+                    let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
+                    if separatedClothingItems.tops != [] && separatedClothingItems.bottoms != [] && separatedClothingItems.footwear != [] {
+                        let generatedOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, previousOutfits: outfits)
+                        
+                        context.insert(generatedOutfit)
+                        
+                        print(generatedOutfit)
+                        print(outfits)
+                    } else {
+                        print("Outfit could not be generated")
+                    }
 
+                }
+            } label: {
+                Text("Generate Outfit")
+            }
+
+            
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         
