@@ -16,8 +16,8 @@ struct NewClothingItemView: View {
     @Environment(\.modelContext) private var context
     
     @State private var name: String = ""
-    @State private var style: ClothingStyle = .minimalist
-    @State private var colour: ClothingColor = .lightBlue
+    @State private var style: ClothingStyle = .casual
+    @State private var colour: ClothingColor = .white
     @State private var type: ClothingType = .top
     @State private var imageData: Data? = nil
     
@@ -60,18 +60,7 @@ struct NewClothingItemView: View {
                     
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                             Label("Add Image", systemImage: "photo")
-                    } // binds to selected item, matching means what we want to show in the picker
-//                    .onChange(of: selectedItem) { _, newItem in // the first underscore is something they added. it represents the old item (the item we are changing AWAY from.) i didnt need it so its an underscore.
-//                                                                // handle selected item
-//                        if let newItem = newItem {
-//                            Task {
-//                                if let data = try? await newItem.loadTransferable(type: Data.self), let image = UIImage(data: data) {
-//                                    selectedImage = image
-//                                }
-//                            }
-//                        }
-//                    }
-                    
+                    }
                     if (imageData != nil) {
                         Button {
                             withAnimation(.easeInOut) {
@@ -99,7 +88,6 @@ struct NewClothingItemView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Button("Done") {
-                    // 1. Create it cleanly using the form's local state
                     let itemToSave = ClothingItem(
                         name: name,
                         style: style,
