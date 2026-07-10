@@ -130,10 +130,6 @@ class ClothingItem {
     var colour: ClothingColor
     var type: ClothingType
     @Attribute(.externalStorage) var image: Data? // @Attribute() tells SwiftData that the images should be stored right into the storage and not in the SQLite database. Keeps the app fast
-    var outfitsAsTop: [Outfit]?
-    var outfitsAsBottom: [Outfit]?
-    var outfitsAsAccessory: [Outfit]?
-    var outfitsAsFootwear: [Outfit]?
 //    var attire: ClothingAttire
     
     init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType, image: Data?, parentOutfits: [Outfit]?/*, attire: ClothingAttire*/) {
@@ -153,10 +149,10 @@ class ClothingItem {
 
 @Model
 class Outfit {
-    @Relationship(inverse: \ClothingItem.outfitsAsTop) var top: ClothingItem
-    @Relationship(inverse: \ClothingItem.outfitsAsBottom) var bottom: ClothingItem
-    @Relationship(inverse: \ClothingItem.outfitsAsFootwear) var accessories: [ClothingItem] = []
-    @Relationship(inverse: \ClothingItem.outfitsAsAccessory) var footwear: ClothingItem
+    var top: ClothingItem
+    var bottom: ClothingItem
+    var accessories: [ClothingItem] = []
+    var footwear: ClothingItem
     init(top: ClothingItem, bottom: ClothingItem, accessories: [ClothingItem], footwear: ClothingItem) {
         self.accessories = accessories
         self.footwear = footwear

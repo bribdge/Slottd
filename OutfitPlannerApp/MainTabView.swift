@@ -8,34 +8,13 @@
 import SwiftUI
 
 struct MainTabView: View {
-    
-    @State private var newClothingItemSheetIsPresented = false
-    
     var body: some View {
-        HStack {
-            TabView {
-                HomeView().tabItem() {
-                    Image(systemName: "house")
-                }
-                HomeView().tabItem() {
-                    Image(systemName: "hanger")
-                }
+        TabView {
+            HomeView().tabItem() {
+                Label("Overview", systemImage: "house")
             }
-            .frame(width: 300)
-            Button {
-                newClothingItemSheetIsPresented.toggle()
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding()
-                    .glassEffect(.regular.interactive().tint(.blue), in: Circle())
-            }
-
-        }
-        .sheet(isPresented: $newClothingItemSheetIsPresented) {
-            NavigationStack {
-                NewClothingItemView()
+            ClothingItemsView().tabItem() {
+                Label("Clothing", systemImage: "hanger")
             }
         }
     }
