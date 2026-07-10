@@ -129,7 +129,7 @@ class ClothingItem {
     var style: ClothingStyle
     var colour: ClothingColor
     var type: ClothingType
-    @Attribute(.externalStorage) var image: Data? // @Attribute() tells SwiftData that the images are large and should only be loaded when needed to keep the app quick
+    @Attribute(.externalStorage) var image: Data? // @Attribute() tells SwiftData that the images should be stored right into the storage and not in the SQLite database. Keeps the app fast
     var outfitsAsTop: [Outfit]?
     var outfitsAsBottom: [Outfit]?
     var outfitsAsAccessory: [Outfit]?
