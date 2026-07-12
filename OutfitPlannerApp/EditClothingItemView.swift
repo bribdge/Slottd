@@ -10,6 +10,7 @@ import SwiftData
 import PhotosUI
 
 struct EditClothingItemView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     
     @Bindable var selectedClothingItem: ClothingItem
@@ -98,6 +99,7 @@ struct EditClothingItemView: View {
                         withAnimation() {
                             context.delete(selectedClothingItem)
                         }
+                        dismiss()
                     }
                 }
             } else {

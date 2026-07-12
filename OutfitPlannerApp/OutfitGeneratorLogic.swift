@@ -57,6 +57,7 @@ enum ClothingColor: String, Codable, CaseIterable, Identifiable {
     case pink = "Pink"
     case purple = "Purple"
     case brown = "Brown"
+    case multicolour = "Multicolour"
     
     var id: Self { self }
 }
@@ -67,10 +68,6 @@ enum ClothingType: String, Codable, CaseIterable, Identifiable {
     
     // Lower Body
     case bottom = "Bottom"
-    case skirt = "Skirt"
-    
-    // Full Body
-//    case onePiece = "One Piece"
     
     // Footwear
     case footwear = "Footwear"
@@ -113,16 +110,33 @@ class Outfit {
     var accessories: [ClothingItem] = []
     var footwear: ClothingItem
     var creationDayOfMonth: Int?
-    init(top: ClothingItem, bottom: ClothingItem, accessories: [ClothingItem], footwear: ClothingItem, creationDayOfMonth: Int?) {
+    var outfitRationale: String
+    init(top: ClothingItem, bottom: ClothingItem, accessories: [ClothingItem], footwear: ClothingItem, creationDayOfMonth: Int?, outfitRationale: String) {
         self.accessories = accessories
         self.footwear = footwear
         self.top = top
         self.bottom = bottom
         self.creationDayOfMonth = creationDayOfMonth
+        self.outfitRationale = outfitRationale
+    }
+    
+    var AIdescription: String {
+        return "Top:\(top.description) | Bottom:\(bottom.description) | Footwear:\(footwear.description)"
     }
     
     var description: String {
-        return "Top:\(top.description) | Bottom:\(bottom.description) | Footwear:\(footwear.description) "
+        return "Top: \(top.description)\nBottom: \(bottom.description)\nFootwear: \(footwear.description)\nCreated on \(creationDayOfMonth?.description ?? "unknown date")"
+    }
+}
+
+@Model
+class DailyOutfitList {
+    var dailyOutfit: Outfit
+    var eventOutfits: [Outfit]
+    
+    init(dailyOutfit: Outfit, eventOutfits: [Outfit]) {
+        self.dailyOutfit = dailyOutfit
+        self.eventOutfits = eventOutfits
     }
 }
 
@@ -230,6 +244,7 @@ func styleDoesClash(style1: ClothingStyle, style2: ClothingStyle) -> Bool {
         }
     }
 }
+
 func separateClothingByType(clothingItems: [ClothingItem]) -> (tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], misc: [ClothingItem]) {
     var tops: [ClothingItem] = []
     var bottoms: [ClothingItem] = []
@@ -249,9 +264,12 @@ func separateClothingByType(clothingItems: [ClothingItem]) -> (tops: [ClothingIt
 }
 
 @Generable()
-struct OutfitIndex {
+struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
     let index: Int
+    
+    @Guide(description: "The reason WHY you chose this outfit. 1 sentence.")
+    let rationale: String
 }
 
 func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], previousOutfits: [Outfit]) async -> Outfit {
@@ -266,12 +284,15 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
         var count = 25
         inner: while true {
             count -= 1
+
+            let randomOutfit = Outfit(top: tops.randomElement()!, bottom: bottoms.randomElement()!, accessories: [], footwear: footwear.randomElement()!, creationDayOfMonth: Calendar.current.component(.day, from: Date()), outfitRationale: "")
+            
             if count <= 0 {
-                print("Unque outfit not found. defaulting to AI choice.")
+                print("Unique outfit not found. defaulting to random possibly non-unique choice.")
+                randomOutfitCombinations.append(randomOutfit)
+                randomOutfitCombinationDescriptions.append(randomOutfit.AIdescription)
                 break inner
             }
-            
-            let randomOutfit = Outfit(top: tops.randomElement()!, bottom: bottoms.randomElement()!, accessories: [], footwear: footwear.randomElement()!, creationDayOfMonth: Calendar.current.component(.day, from: Date()))
             
             for outfit in previousOutfits {
                 if outfit.top == randomOutfit.top || outfit.bottom == randomOutfit.bottom || colourDoesClash(colour1: randomOutfit.top.colour, colour2: randomOutfit.bottom.colour) || styleDoesClash(style1: randomOutfit.top.style, style2: randomOutfit.bottom.style) {
@@ -280,7 +301,7 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
             }
             
             randomOutfitCombinations.append(randomOutfit)
-            randomOutfitCombinationDescriptions.append(randomOutfit.description)
+            randomOutfitCombinationDescriptions.append(randomOutfit.AIdescription)
             break inner
             }
         }
@@ -303,10 +324,11 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
 
             print(prompt)
             
-            let response = try await session.respond(to: prompt, generating: OutfitIndex.self)
+            let response = try await session.respond(to: prompt, generating: OutfitResponse.self)
             
             print("AI PICKED INDEX: \(response.content.index)")
             if randomOutfitCombinations.indices.contains(response.content.index) {
+                randomOutfitCombinations[response.content.index].outfitRationale = response.content.rationale
                 return randomOutfitCombinations[response.content.index]
             } else {
                 print("AI HALLUCINATED THE INDEX BOI")
@@ -329,14 +351,14 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
         let randomFootwear = footwear.randomElement()!
         
         if count <= 1 {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, creationDayOfMonth: Calendar.current.component(.day, from: Date()))
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, creationDayOfMonth: Calendar.current.component(.day, from: Date()), outfitRationale: "")
         }
         
         if colourDoesClash(colour1: randomTop.colour, colour2: randomBottom.colour) || styleDoesClash(style1: randomTop.style, style2: randomBottom.style) {
             count -= 1
             continue;
         } else {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, creationDayOfMonth: Calendar.current.component(.day, from: Date()))
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, creationDayOfMonth: Calendar.current.component(.day, from: Date()), outfitRationale: "")
         }
     }
 }

@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 import SwiftData
+import EventKit
 
 struct HomeView: View {
     @Query private var clothingItems: [ClothingItem]
@@ -15,53 +16,82 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     
     var calendar = Calendar.current
-    
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("dateLastOpened")
+        private var dateLastOpened = Date.distantPast
     
-    @AppStorage("weekOfMonthLastOpened")
-        private var weekOfMonthLastOpened = 0
+    @State private var calendarManager: CalendarManager = CalendarManager()
     
     var body: some View {
-        VStack() {
-            
-            Button {
-                Task {
-                    let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
-                    if separatedClothingItems.tops != [] && separatedClothingItems.bottoms != [] && separatedClothingItems.footwear != [] {
-                        let generatedOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, previousOutfits: outfits)
-                        
-                        context.insert(generatedOutfit)
-                        
-                        print(generatedOutfit)
-                        print(outfits)
-                    } else {
-                        print("Outfit could not be generated")
+        ZStack {
+            NavigationStack {
+                VStack() {
+                    
+                    Button {
+                        Task {
+                            let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
+                            if separatedClothingItems.tops != [] && separatedClothingItems.bottoms != [] && separatedClothingItems.footwear != [] {
+                                let generatedOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, previousOutfits: outfits)
+                                
+                                context.insert(generatedOutfit)
+                                print(generatedOutfit.outfitRationale)
+
+                                for outfit in outfits {
+                                    print(outfit.description)
+                                }
+                            } else {
+                                print("Outfit could not be generated")
+                            }
+                            
+                        }
+                    } label: {
+                        Text("Generate Outfit")
                     }
-
+                    .padding()
+                        //                Button {
+                        //                    Task {
+                        //                        for outfit in outfits {
+                        //                            context.delete(outfit)
+                        //                        }
+                        //                        
+                        //                        try context.save()
+                        //                        
+                        //                        print(outfits)
+                        //                    }
+                        //                } label: {
+                        //                    Text("Remove All Outfits")
+                        //                }
+                        //                .padding()
                 }
-            } label: {
-                Text("Generate Outfit")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("Today's Outfits")
+                
             }
-
-            
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        
-    
+        .onChange(of: scenePhase) { _, newPhase in
+            print("scenePhase: \(newPhase)")
+            Task {
+                if calendarManager.authorizationStatus == .notDetermined {
+                    await calendarManager.requestAccess()
+                }
+            }
+            calendarManager.fetchEvents()
+            for event in calendarManager.events {
+                print(event.title ?? "")
+            }
+            if newPhase == .active {
+                if !Calendar.current.isDateInToday(dateLastOpened) {
+                    print("\nDay has changed\n")
+                    while outfits.count >= 6 { // while loop to remove more than one if more than one somehow got added
+                        let outfitToRemove = outfits[5]
+                        context.delete(outfitToRemove)
+                    }
+                }
+
+                dateLastOpened = Date()
+            }
+        }
     }
-//        .onChange(of: scenePhase) { _, newPhase in
-//            print("onChange opened - Scene phase changed to:", newPhase)
-//            
-//            if newPhase == .active {
-//                if (calendar.component(.weekOfMonth, from: Date()) != weekOfMonthLastOpened) {
-//                    print("Week of month changed.")
-//                    appData.currentWeekOutfitPlan = generateWeekOutfitPlan(clothingItems: appData.clothingItems).outfitPlan
-//                }
-//
-//                weekOfMonthLastOpened = calendar.component(.weekOfMonth, from: Date())
-//                print("New week of month: \(weekOfMonthLastOpened)")
-//            }
-//        }
 }
 
 #Preview {

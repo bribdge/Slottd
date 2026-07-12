@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
     var body: some View {
@@ -20,6 +21,8 @@ struct MainTabView: View {
 //                Label("Favorites", systemImage: "star")
 //            }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
+
     }
 }
 

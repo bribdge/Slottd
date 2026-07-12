@@ -25,12 +25,28 @@ struct ClothingItemsView: View {
                 List {
                     if isSearching {
                         ForEach(searchResults) { item in
-                            Text(item.name)
+                            NavigationLink(value: item) {
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .frame(alignment: .leading)
+                                        .font(.headline)
+                                    Text("\(item.colour.rawValue), \(item.type.rawValue)")
+                                        .frame(alignment: .leading)
+                                        .font(.subheadline)
+                                }
+                            }
                         }
                     } else {
                         ForEach(clothingItems) { item in
                             NavigationLink(value: item) {
-                                Text(item.name)
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .frame(alignment: .leading)
+                                        .font(.headline)
+                                    Text("\(item.colour.rawValue), \(item.type.rawValue)")
+                                        .frame(alignment: .leading)
+                                        .font(.subheadline)
+                                }
                             }
                         }
                     }
