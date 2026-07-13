@@ -39,8 +39,8 @@ class CalendarManager {
     }
     
     func fetchEvents() {
-        let startDate = Date() // defining a range from which we want to fetch events
-        guard let endDate = Calendar.current.date(byAdding: .hour, value: 24, to: startDate)
+        let startDate = Calendar.current.startOfDay(for: .now) // defining a range from which we want to fetch events
+        guard let endDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: startDate)
         else {return}
         
         let calendars = eventStore.calendars(for: .event)

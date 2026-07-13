@@ -21,8 +21,6 @@ struct MainTabView: View {
 //                Label("Favorites", systemImage: "star")
 //            }
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
-
     }
 }
 
