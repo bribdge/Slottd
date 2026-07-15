@@ -12,7 +12,7 @@ import Observation
 @Observable
 @MainActor // keeps us on the main thread
 class CalendarManager {
-    private let eventStore = EKEventStore() // create only one EKEventStore as creating one uses lots of resources
+    let eventStore = EKEventStore() // create only one EKEventStore as creating one uses lots of resources
     
     var events: [EKEvent] = []
     var authorizationStatus: EKAuthorizationStatus = .notDetermined // we dont know if the user has accepted access to the calendar, so this is not determined.

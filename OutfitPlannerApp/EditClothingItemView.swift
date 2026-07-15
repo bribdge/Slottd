@@ -17,6 +17,7 @@ struct EditClothingItemView: View {
     @State private var isEditing: Bool = false
     
     @State private var selectedItem: PhotosPickerItem? // for photos picker (obviously)
+    @State private var showConfirmation = false
     
     var body: some View {
         List {
@@ -50,8 +51,8 @@ struct EditClothingItemView: View {
                        let uiImage = UIImage(data: selectedImageData) {
                         Image(uiImage: uiImage)
                             .resizable()
-                            .scaledToFit()
-                            .frame(minWidth: 30, maxWidth: 300)
+                            .scaledToFill()
+                            .frame(width: 300, height: 300)
                             .cornerRadius(25)
                     } else {
                         Text("No Image Selected.")
@@ -61,8 +62,8 @@ struct EditClothingItemView: View {
                        let uiImage = UIImage(data: selectedImageData) {
                         Image(uiImage: uiImage)
                             .resizable()
-                            .scaledToFit()
-                            .frame(minWidth: 30, maxWidth: 300)
+                            .scaledToFill()
+                            .frame(width: 300, height: 300)
                             .cornerRadius(25)
                     }
                     
@@ -93,13 +94,22 @@ struct EditClothingItemView: View {
                         }
                     }
                 }
-                    //                ToolbarSpacer(placement: .topBarTrailing)
+                                    ToolbarSpacer(placement: .topBarTrailing)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Delete", systemImage: "trash") {
-                        withAnimation() {
-                            context.delete(selectedClothingItem)
+                        showConfirmation = true
+                    }
+                    .tint(.red)
+                    .confirmationDialog("Delete?", isPresented: $showConfirmation) {
+                        Button("Delete", role: .destructive) {
+                            withAnimation() {
+                                context.delete(selectedClothingItem)
+                            }
+                            dismiss()
                         }
-                        dismiss()
+                        Button("Cancel", role: .cancel) {
+                           showConfirmation = false
+                        }
                     }
                 }
             } else {
@@ -121,5 +131,7 @@ struct EditClothingItemView: View {
 }
 
 #Preview {
-    EditClothingItemView(selectedClothingItem: ClothingItem(name: "Sweatpants", style: .casual, colour: .gray, type: .bottom, image: nil, parentOutfits: nil))
+    NavigationStack {
+        EditClothingItemView(selectedClothingItem: ClothingItem(name: "Sweatpants", style: .casual, colour: .gray, type: .bottom, image: nil, parentOutfits: nil))
+    }
 }

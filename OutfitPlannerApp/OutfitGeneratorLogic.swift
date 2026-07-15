@@ -119,17 +119,17 @@ class Outfit {
     @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsFootwear)
     var accessories: [ClothingItem] = []
     var footwear: ClothingItem?
-    var occasionTitle: String?
+    var occasionIdentifier: String?
     var outfitRationale: String?
-    var outfitStatus: String?
-    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionTitle: String?, outfitRationale: String?, outfitStatus: String?) {
+    var outfitIsValid: Bool
+    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occastionIdentifier: String?, outfitRationale: String?, outfitIsValid: Bool) {
         self.accessories = accessories
         self.footwear = footwear
         self.top = top
         self.bottom = bottom
-        self.occasionTitle = occasionTitle
+        self.occasionIdentifier = occastionIdentifier
         self.outfitRationale = outfitRationale
-        self.outfitStatus = outfitStatus
+        self.outfitIsValid = outfitIsValid
     }
     
     var AIdescription: String {
@@ -137,7 +137,7 @@ class Outfit {
     }
     
     var description: String {
-        return "Top: \(top?.description ?? "")\nBottom: \(bottom?.description ?? "")\nFootwear: \(footwear?.description ?? "")\(occasionTitle != nil ? " \n \(occasionTitle ?? "")" : "")"
+        return "Top: \(top?.description ?? "")\nBottom: \(bottom?.description ?? "")\nFootwear: \(footwear?.description ?? "")"
     }
 }
 
@@ -284,54 +284,57 @@ struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
     let index: Int
     
-    @Guide(description: "One sentence styling breakdown using the format: 'This outfit combines [X] and [Y] for a [Z] look.' Mention why the outfit fits the occasion.")
+    @Guide(description: "20-25 word styling breakdown using the format: 'This outfit combines [X] and [Y] for a [Z] look.' Mention why the outfit fits the occasion.")
     let rationale: String
 }
 
-func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], previousOutfits: [Outfit], occasionTitle: String) async -> Outfit {
+let sportyKeywords = [
+    "workout", "gym session", "weight lifting", "weightlifting", "free weights", "cardio", "fitness class", "bootcamp",
+    "crossfit", "calisthenics", "bodybuilding", "strength training",
+    "running", "track and field", "marathon", "5k", "10k", "sprinting", "jogging",
+    "soccer", "football", "basketball", "tennis", "badminton", "volleyball", "rugby", "baseball",
+    "hiking", "rock climbing", "cycling", "biking", "swimming laps", "swim laps", "lap pool", "skateboarding",
+    "yoga class", "vinyasa", "pilates", "athletic", "training", "sports practice", "team practice"
+]
+
+let formalKeywords = [
+    "black tie", "white tie", "gala", "prom", "charity ball", "awards banquet", "award ceremony", "wedding ceremony", "opera", "ballet",
+    "job interview", "business conference", "board meeting", "client pitch", "corporate event", "networking event", "academic seminar", "thesis defense",
+    "funeral", "memorial service", "graduation ceremony", "court appearance",
+    "cocktail attire", "formal wear", "business professional"
+]
+
+let comfyKeywords = [
+    "lounging", "lazy day", "staying home", "chilling", "movie night", "lying in bed", "sleeping",
+    "pajamas", "pajama party", "loungewear", "sweatpants day",
+    "gaming", "video games", "studying at home", "cramming", "rest", "recovery", "sick", "couch potato",
+    "staycation", "hangout", "casual Sunday"
+]
+
+let boldKeywords = [
+    "nightclub", "clubbing", "rave", "music festival", "concert gig", "edm festival", "bar hopping", "pub crawl",
+    "birthday party", "bachelorette", "bachelor party", "vip lounge", "carnival",
+    "date night", "dinner date", "fashion show", "runway showcase",
+    "costume party", "halloween party", "themed party", "cosplay"
+]
+
+func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) async -> Outfit {
+    print("Received occasion: [\(occasionTitle)]")
     let model = SystemLanguageModel.default
     let session = LanguageModelSession()
     var randomOutfitCombinations: [Outfit] = []
     var randomOutfitCombinationDescriptions: [String] = []
-    var status = ""
+    var outfitIsValid: Bool = true
     
     // filtering clothing items
     
-    let sportyKeywords = [
-        "workout", "gym session", "weight lifting", "weightlifting", "free weights", "cardio", "fitness class", "bootcamp",
-        "crossfit", "calisthenics", "bodybuilding", "strength training",
-        "running", "track and field", "marathon", "5k run", "10k run", "sprinting", "jogging",
-        "soccer", "football", "basketball", "tennis", "badminton", "volleyball", "rugby", "baseball",
-        "hiking", "rock climbing", "cycling", "biking", "swimming laps", "swim laps", "lap pool", "skateboarding",
-        "yoga class", "vinyasa", "pilates", "athletic training", "sports practice", "team practice"
-    ]
 
-    let formalKeywords = [
-        "black tie", "white tie", "gala", "prom", "charity ball", "awards banquet", "award ceremony", "wedding ceremony", "opera", "ballet",
-        "job interview", "business conference", "board meeting", "client pitch", "corporate event", "networking event", "academic seminar", "thesis defense",
-        "funeral", "memorial service", "graduation ceremony", "court appearance",
-        "cocktail attire", "formal wear", "business professional"
-    ]
-
-    let comfyKeywords = [
-        "lounging", "lazy day", "staying home", "chilling at home", "movie night", "lying in bed", "sleeping",
-        "pajamas", "pajama party", "loungewear", "sweatpants day",
-        "gaming session", "video games", "studying at home", "cramming", "rest day", "recovery day", "sick day", "couch potato",
-        "staycation", "lowkey hangout", "casual Sunday"
-    ]
-
-    let boldKeywords = [
-        "nightclub", "clubbing", "rave", "music festival", "concert gig", "edm festival", "bar hopping", "pub crawl",
-        "birthday party", "bachelorette", "bachelor party", "vip lounge", "carnival",
-        "date night", "dinner date", "fashion show", "runway showcase",
-        "costume party", "halloween party", "themed party", "cosplay"
-    ]
     
     let titleLowercased = occasionTitle.lowercased()
-    let isSportyEvent = sportyKeywords.contains(titleLowercased)
-    let isFormalEvent = formalKeywords.contains(titleLowercased)
-    let isComfyEvent = comfyKeywords.contains(titleLowercased)
-    let isBoldEvent = boldKeywords.contains(titleLowercased)
+    let isSportyEvent = sportyKeywords.contains { titleLowercased.contains($0) }
+    let isFormalEvent = formalKeywords.contains { titleLowercased.contains($0) }
+    let isComfyEvent = comfyKeywords.contains { titleLowercased.contains($0) }
+    let isBoldEvent = boldKeywords.contains { titleLowercased.contains($0) }
     
     let filteredTops = tops.filter { item in
         if isSportyEvent { return item.style == .sporty || item.style == .comfy }
@@ -358,7 +361,7 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
     }
     
     if filteredTops == [] || filteredBottoms == [] || filteredFootwear == [] { // maybe change to .count() < 4
-        status = "You haven't added enough clothing items to generate a smart outfit suggestion. Try adding some in the 'Clothing' tab."
+        outfitIsValid = false
     }
     
     let finalTops = filteredTops.isEmpty ? tops: filteredTops
@@ -372,14 +375,15 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
         inner: while true {
             count -= 1
             
-            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occasionTitle: occasionTitle, outfitRationale: nil, outfitStatus: nil)
+            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: false)
             
             let randomTop = finalTops.randomElement()
             
             if randomTop?.type == .fullBody {
-                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occasionTitle: occasionTitle, outfitRationale: nil, outfitStatus: nil)
+                print("generating full body outfit")
+                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: outfitIsValid)
             } else {
-                randomOutfit = Outfit(top: finalTops.randomElement()!, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occasionTitle: occasionTitle, outfitRationale: nil, outfitStatus: nil)
+                randomOutfit = Outfit(top: randomTop, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: outfitIsValid)
             }
             
             if count <= 0 {
@@ -389,12 +393,9 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
                 break inner
             }
             
-            let hasClash = previousOutfits.contains { outfit in
-                outfit.top == randomOutfit.top || outfit.bottom == randomOutfit.bottom ||
-                colourDoesClash(colour1: randomOutfit.top?.colour ?? .white, colour2: randomOutfit.bottom?.colour ?? .white)
+            if colourDoesClash(colour1: randomTop?.colour ?? .white, colour2: randomOutfit.bottom?.colour ?? .white) || styleDoesClash(style1: randomTop?.style ?? .casual, style2: randomOutfit.bottom?.style ?? .casual) {
+                continue inner
             }
-            
-            if hasClash { continue inner }
             
             randomOutfitCombinations.append(randomOutfit)
             randomOutfitCombinationDescriptions.append(randomOutfit.AIdescription)
@@ -427,56 +428,82 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
             
             let chosenOutfit = randomOutfitCombinations[response.content.index]
             
+            print(chosenOutfit.description)
+            
             if randomOutfitCombinations.indices.contains(response.content.index) {
                 print(response.content.rationale)
                 chosenOutfit.outfitRationale = response.content.rationale
-                chosenOutfit.outfitStatus = status
                 return chosenOutfit
             } else {
                 print("AI HALLUCINATED THE INDEX BOI")
-                return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, previousOutfits: previousOutfits, occasionTitle: occasionTitle)
+                return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
             }
         } catch {
             print("failed : \(error)")
-            return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, previousOutfits: previousOutfits, occasionTitle: occasionTitle)
+            return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
         }
     }
     print("Model is not avaliable \(model.availability)")
-    return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, previousOutfits: previousOutfits, occasionTitle: occasionTitle)
+    return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
 }
 
-func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], previousOutfits: [Outfit], occasionTitle: String) -> Outfit {
-    let model = SystemLanguageModel.default
-    var modelAvalibility: String? {
-        switch model.availability {
-            case .available:
-                return nil
-            case .unavailable(.deviceNotEligible):
-                return "Your device does not support smarter outfit generation."
-            case .unavailable(.appleIntelligenceNotEnabled):
-                return "Please enable Apple Intelligence in Settings to get smarter outfit plans."
-            case .unavailable(.modelNotReady):
-                return "The model is currently preparing. When completed, you'll receive smarter outfit plans."
-            default:
-                return nil
-        }
+func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) -> Outfit {
+    print("generating without AI")
+    var outfitIsValid: Bool = true
+    
+    let titleLowercased = occasionTitle.lowercased()
+    let isSportyEvent = sportyKeywords.contains(titleLowercased)
+    let isFormalEvent = formalKeywords.contains(titleLowercased)
+    let isComfyEvent = comfyKeywords.contains(titleLowercased)
+    let isBoldEvent = boldKeywords.contains(titleLowercased)
+    
+    let filteredTops = tops.filter { item in
+        if isSportyEvent { return item.style == .sporty || item.style == .comfy }
+        if isFormalEvent { return item.style == .formal || item.style == .businessCasual }
+        if isComfyEvent  { return item.style == .comfy  || item.style == .casual }
+        if isBoldEvent   { return item.style == .bold   || item.style == .streetwear || item.style == .grunge }
+        return true // default to all if there is no specific type
     }
+
+    let filteredBottoms = bottoms.filter { item in
+        if isSportyEvent { return item.style == .sporty || item.style == .comfy }
+        if isFormalEvent { return item.style == .formal || item.style == .businessCasual }
+        if isComfyEvent  { return item.style == .comfy  || item.style == .casual }
+        if isBoldEvent   { return item.style == .bold   || item.style == .streetwear || item.style == .grunge }
+        return true
+    }
+
+    let filteredFootwear = footwear.filter { item in
+        if isSportyEvent { return item.style == .sporty }
+        if isFormalEvent { return item.style == .formal || item.style == .businessCasual }
+        if isComfyEvent  { return item.style == .comfy  || item.style == .casual }
+        if isBoldEvent   { return item.style == .bold   || item.style == .streetwear || item.style == .formal }
+        return true
+    }
+    
+    if filteredTops == [] || filteredBottoms == [] || filteredFootwear == [] { // maybe change to .count() < 4
+        outfitIsValid = false
+    }
+    
+    let finalTops = filteredTops.isEmpty ? tops: filteredTops
+    let finalBottoms  = filteredBottoms.isEmpty ? bottoms : filteredBottoms
+    let finalFootwear = filteredFootwear.isEmpty ? footwear : filteredFootwear
     
     var count = 50
     while true {
-        let randomTop = tops.randomElement()!
-        let randomBottom = bottoms.randomElement()!
-        let randomFootwear = footwear.randomElement()!
+        let randomTop = finalTops.randomElement()!
+        let randomBottom = finalBottoms.randomElement()!
+        let randomFootwear = finalFootwear.randomElement()!
         
         if count <= 1 {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionTitle: occasionTitle, outfitRationale: "", outfitStatus: modelAvalibility)
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occastionIdentifier: occasionIdentifier, outfitRationale: "", outfitIsValid: outfitIsValid)
         }
         
         if colourDoesClash(colour1: randomTop.colour, colour2: randomBottom.colour) || styleDoesClash(style1: randomTop.style, style2: randomBottom.style) {
             count -= 1
             continue;
         } else {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionTitle: occasionTitle, outfitRationale: "", outfitStatus: modelAvalibility)
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occastionIdentifier: occasionIdentifier, outfitRationale: "", outfitIsValid: outfitIsValid)
         }
     }
 }

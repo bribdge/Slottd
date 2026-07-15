@@ -53,8 +53,8 @@ struct NewClothingItemView: View {
                         let uiImage = UIImage(data: selectedImageData) {
                         Image(uiImage: uiImage)
                             .resizable()
-                            .scaledToFit()
-                            .frame(minWidth: 30, maxWidth: 300)
+                            .scaledToFill()
+                            .frame(width: 300, height: 300)
                             .cornerRadius(25)
                     }
                     
@@ -105,6 +105,7 @@ struct NewClothingItemView: View {
 
                     dismiss()
                 }
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines) == "")
             }
         }
         .task(id: selectedItem) {

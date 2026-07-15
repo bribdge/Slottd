@@ -1,0 +1,64 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "srgb:0.00000,1.00000,0.85059,1.00000",
+      "srgb:0.05334,0.39853,0.54971,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 0
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.7
+      }
+    }
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "glass" : true,
+          "image-name" : "tshirt.fill.png",
+          "name" : "tshirt.fill",
+          "position" : {
+            "scale" : 0.65,
+            "translation-in-points" : [
+              0,
+              59.256875000000036
+            ]
+          }
+        },
+        {
+          "glass" : true,
+          "image-name" : "imageedit_0_9165115685.png",
+          "name" : "imageedit_0_9165115685",
+          "position" : {
+            "scale" : 1.44,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
