@@ -162,7 +162,7 @@ struct OutfitCardView: View {
                 }
                 .scrollIndicators(.hidden)
                 ZStack(alignment: .topLeading) {
-                    Text(selectedOutfit?.outfitRationale ?? "")
+                    Text(selectedOutfit?.rationale ?? "")
                         .font(.system(size: 14, design: .rounded))
                         .padding()
                 }

@@ -17,13 +17,14 @@ struct NewClothingItemView: View {
     
     @State private var name: String = ""
     @State private var style: ClothingStyle = .casual
-    @State private var colour: ClothingColor = .white
+    @State private var color: ClothingColor = .white
     @State private var type: ClothingType = .top
     @State private var imageData: Data? = nil
     
-    @State private var showPopup = false
+    @State private var showingCamera = false
     
     @State private var selectedItem: PhotosPickerItem? // hold the selected photo
+    @State private var selectedImage: UIImage? // holds the selected image
     var body: some View {
         VStack {
             List {
@@ -41,7 +42,7 @@ struct NewClothingItemView: View {
                             Text(style.rawValue.capitalized)
                         }
                     }
-                    Picker("Color", selection: $colour) {
+                    Picker("Color", selection: $color) {
                         ForEach(ClothingColor.allCases) { color in
                             Text(color.rawValue.capitalized)
                         }
@@ -59,8 +60,19 @@ struct NewClothingItemView: View {
                     }
                     
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                            Label("Add Image", systemImage: "photo")
+                        Label("Add Image", systemImage: "photo")
                     }
+                    
+                    Button(action: {
+                        showingCamera = true
+                    }){
+                        Label("Take Photo", systemImage: "camera")
+                    }
+                    .sheet(isPresented: $showingCamera) {
+                        CameraView(imageData: $imageData)
+                            .ignoresSafeArea()
+                    }
+                    
                     if (imageData != nil) {
                         Button {
                             withAnimation(.easeInOut) {
@@ -91,7 +103,7 @@ struct NewClothingItemView: View {
                     let itemToSave = ClothingItem(
                         name: name,
                         style: style,
-                        colour: colour,
+                        color: color,
                         type: type,
                         image: imageData,
                         parentOutfits: []

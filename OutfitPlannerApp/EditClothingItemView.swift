@@ -39,7 +39,7 @@ struct EditClothingItemView: View {
                         Text(style.rawValue.capitalized)
                     }
                 }.disabled(isEditing ? false : true)
-                Picker("Color", selection: $selectedClothingItem.colour) {
+                Picker("Color", selection: $selectedClothingItem.color) {
                     ForEach(ClothingColor.allCases) { color in
                         Text(color.rawValue.capitalized)
                     }
@@ -132,6 +132,6 @@ struct EditClothingItemView: View {
 
 #Preview {
     NavigationStack {
-        EditClothingItemView(selectedClothingItem: ClothingItem(name: "Sweatpants", style: .casual, colour: .gray, type: .bottom, image: nil, parentOutfits: nil))
+        EditClothingItemView(selectedClothingItem: ClothingItem(name: "Sweatpants", style: .casual, color: .gray, type: .bottom, image: nil, parentOutfits: nil))
     }
 }

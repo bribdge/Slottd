@@ -30,7 +30,7 @@ struct ClothingItemsView: View {
                                     Text(item.name)
                                         .frame(alignment: .leading)
                                         .font(.headline)
-                                    Text("\(item.colour.rawValue), \(item.type.rawValue)")
+                                    Text("\(item.color.rawValue), \(item.type.rawValue)")
                                         .frame(alignment: .leading)
                                         .font(.subheadline)
                                 }
@@ -43,7 +43,7 @@ struct ClothingItemsView: View {
                                     Text(item.name)
                                         .frame(alignment: .leading)
                                         .font(.headline)
-                                    Text("\(item.colour.rawValue), \(item.type.rawValue)")
+                                    Text("\(item.color.rawValue), \(item.type.rawValue)")
                                         .frame(alignment: .leading)
                                         .font(.subheadline)
                                 }

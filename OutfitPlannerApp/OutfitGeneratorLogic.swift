@@ -58,7 +58,7 @@ enum ClothingColor: String, Codable, CaseIterable, Identifiable {
     case pink = "Pink"
     case purple = "Purple"
     case brown = "Brown"
-    case multicolour = "Multicolour"
+    case multicolor = "Multicolor"
     
     var id: Self { self }
 }
@@ -84,7 +84,7 @@ enum ClothingType: String, Codable, CaseIterable, Identifiable {
 class ClothingItem {
     var name: String
     var style: ClothingStyle
-    var colour: ClothingColor
+    var color: ClothingColor
     var type: ClothingType
     @Attribute(.externalStorage) var image: Data? // @Attribute() tells SwiftData that the images should be stored right into the storage and not in the SQLite database. Keeps the app fast
     
@@ -93,18 +93,18 @@ class ClothingItem {
     var outfitsAsFootwear: [Outfit] = []
 //    var attire: ClothingAttire
     
-    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, colour: ClothingColor, type: ClothingType, image: Data?, parentOutfits: [Outfit]?/*, attire: ClothingAttire*/) {
+    init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, color: ClothingColor, type: ClothingType, image: Data?, parentOutfits: [Outfit]?/*, attire: ClothingAttire*/) {
 //        self.image = image
         self.name = name
         self.style = style
-        self.colour = colour
+        self.color = color
         self.type = type
         self.image = image
 //        self.attire = attire
     }
     
     var description: String {
-        "\(name) (\(style.rawValue), \(colour.rawValue))"
+        "\(name) (\(style.rawValue), \(color.rawValue))"
         }
 }
 
@@ -116,23 +116,29 @@ class Outfit {
     @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsBottom)
     var bottom: ClothingItem?
     
-    @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsFootwear)
+
     var accessories: [ClothingItem] = []
+    
+    @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsFootwear)
     var footwear: ClothingItem?
     var occasionIdentifier: String?
-    var outfitRationale: String?
-    var outfitIsValid: Bool
-    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occastionIdentifier: String?, outfitRationale: String?, outfitIsValid: Bool) {
+    var rationale: String?
+    var isValid: Bool
+    var isStarred: Bool = false
+    var isLockedIn: Bool = false
+    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, isValid: Bool, isStarred: Bool = false, isLockedIn: Bool = false) {
         self.accessories = accessories
         self.footwear = footwear
         self.top = top
         self.bottom = bottom
-        self.occasionIdentifier = occastionIdentifier
-        self.outfitRationale = outfitRationale
-        self.outfitIsValid = outfitIsValid
+        self.occasionIdentifier = occasionIdentifier
+        self.rationale = rationale
+        self.isValid = isValid
+        self.isStarred = isStarred
+        self.isLockedIn = isLockedIn
     }
     
-    var AIdescription: String {
+    var aiDescription: String {
         return "Top:\(top?.description ?? "") | Bottom:\(bottom?.description ?? "") | Footwear:\(footwear?.description ?? "")"
     }
     
@@ -156,49 +162,49 @@ class DailyOutfitList {
     }
 }
 
-func colourDoesClash(colour1: ClothingColor, colour2: ClothingColor) -> Bool {
-    if colour1 == colour2 {
+func colorDoesClash(color1: ClothingColor, color2: ClothingColor) -> Bool {
+    if color1 == color2 {
         return false
     }
     
-    switch colour1 {
+    switch color1 {
     case .blue:
-        switch colour2 {
+        switch color2 {
         case .red, .orange, .black: return true
         default: return false
     }
     case .red:
-        switch colour2 {
+        switch color2 {
         case .blue, .orange, .purple, .green: return true
         default: return false
         }
     case .green:
-        switch colour2 {
+        switch color2 {
         case .orange, .red, .purple: return true
         default: return false
         }
     case .yellow:
-        switch colour2 {
+        switch color2 {
         case .pink, .purple: return true
         default: return false
         }
     case .orange:
-        switch colour2 {
+        switch color2 {
         case .blue, .pink, .red, .green, .purple: return true
         default: return false
         }
     case .purple:
-        switch colour2 {
+        switch color2 {
         case .red, .green, .yellow, .orange: return true
         default: return false
         }
     case .brown:
-        switch colour2 {
+        switch color2 {
         case .black: return true
         default: return false
         }
     case .black:
-        switch colour2 {
+        switch color2 {
         case .blue, .brown: return true
         default: return false
         }
@@ -318,13 +324,13 @@ let boldKeywords = [
     "costume party", "halloween party", "themed party", "cosplay"
 ]
 
-func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) async -> Outfit {
+func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) async -> Outfit {
     print("Received occasion: [\(occasionTitle)]")
     let model = SystemLanguageModel.default
     let session = LanguageModelSession()
     var randomOutfitCombinations: [Outfit] = []
     var randomOutfitCombinationDescriptions: [String] = []
-    var outfitIsValid: Bool = true
+    var isValid: Bool = true
     
     // filtering clothing items
     
@@ -361,7 +367,7 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
     }
     
     if filteredTops == [] || filteredBottoms == [] || filteredFootwear == [] { // maybe change to .count() < 4
-        outfitIsValid = false
+        isValid = false
     }
     
     let finalTops = filteredTops.isEmpty ? tops: filteredTops
@@ -375,30 +381,30 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
         inner: while true {
             count -= 1
             
-            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: false)
+            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: false)
             
             let randomTop = finalTops.randomElement()
             
             if randomTop?.type == .fullBody {
                 print("generating full body outfit")
-                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: outfitIsValid)
+                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid)
             } else {
-                randomOutfit = Outfit(top: randomTop, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occastionIdentifier: occasionIdentifier, outfitRationale: nil, outfitIsValid: outfitIsValid)
+                randomOutfit = Outfit(top: randomTop, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid)
             }
             
             if count <= 0 {
                 print("Unique outfit not found. defaulting to random possibly non-unique choice.")
                 randomOutfitCombinations.append(randomOutfit)
-                randomOutfitCombinationDescriptions.append(randomOutfit.AIdescription)
+                randomOutfitCombinationDescriptions.append(randomOutfit.aiDescription)
                 break inner
             }
             
-            if colourDoesClash(colour1: randomTop?.colour ?? .white, colour2: randomOutfit.bottom?.colour ?? .white) || styleDoesClash(style1: randomTop?.style ?? .casual, style2: randomOutfit.bottom?.style ?? .casual) {
+            if colorDoesClash(color1: randomTop?.color ?? .white, color2: randomOutfit.bottom?.color ?? .white) || styleDoesClash(style1: randomTop?.style ?? .casual, style2: randomOutfit.bottom?.style ?? .casual) {
                 continue inner
             }
             
             randomOutfitCombinations.append(randomOutfit)
-            randomOutfitCombinationDescriptions.append(randomOutfit.AIdescription)
+            randomOutfitCombinationDescriptions.append(randomOutfit.aiDescription)
             break inner
             }
         }
@@ -432,24 +438,24 @@ func generateDailyOutfitAI(tops: [ClothingItem], bottoms: [ClothingItem], footwe
             
             if randomOutfitCombinations.indices.contains(response.content.index) {
                 print(response.content.rationale)
-                chosenOutfit.outfitRationale = response.content.rationale
+                chosenOutfit.rationale = response.content.rationale
                 return chosenOutfit
             } else {
                 print("AI HALLUCINATED THE INDEX BOI")
-                return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+                return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
             }
         } catch {
             print("failed : \(error)")
-            return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+            return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
         }
     }
     print("Model is not avaliable \(model.availability)")
-    return generateDailyOutfit(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+    return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
 }
 
-func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) -> Outfit {
+func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) -> Outfit {
     print("generating without AI")
-    var outfitIsValid: Bool = true
+    var isValid: Bool = true
     
     let titleLowercased = occasionTitle.lowercased()
     let isSportyEvent = sportyKeywords.contains(titleLowercased)
@@ -482,7 +488,7 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
     }
     
     if filteredTops == [] || filteredBottoms == [] || filteredFootwear == [] { // maybe change to .count() < 4
-        outfitIsValid = false
+        isValid = false
     }
     
     let finalTops = filteredTops.isEmpty ? tops: filteredTops
@@ -496,14 +502,14 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
         let randomFootwear = finalFootwear.randomElement()!
         
         if count <= 1 {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occastionIdentifier: occasionIdentifier, outfitRationale: "", outfitIsValid: outfitIsValid)
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, rationale: "", isValid: isValid)
         }
         
-        if colourDoesClash(colour1: randomTop.colour, colour2: randomBottom.colour) || styleDoesClash(style1: randomTop.style, style2: randomBottom.style) {
+        if colorDoesClash(color1: randomTop.color, color2: randomBottom.color) || styleDoesClash(style1: randomTop.style, style2: randomBottom.style) {
             count -= 1
             continue;
         } else {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occastionIdentifier: occasionIdentifier, outfitRationale: "", outfitIsValid: outfitIsValid)
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, rationale: "", isValid: isValid)
         }
     }
 }

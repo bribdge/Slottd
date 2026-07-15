@@ -98,35 +98,38 @@ struct HomeView: View {
                                     
                                     OutfitCardView(eventIdentifier: selectedEventIdentifier, calendarManager: calendarManager)
                                     
-                                    HStack(spacing: 10) {
-                                        Button {
+                                    if ((dailyOutfitList.first?.eventOutfits.first(where: { $0.occasionIdentifier == selectedEventIdentifier
+                                    })?.isLockedIn) == nil) {
+                                        HStack(spacing: 10) {
+                                            Button {
+                                                
+                                            } label: {
+                                                Text("Regenerate")
+                                                    .font(.system(size: 15, weight: .bold))
+                                                
+                                            }
+                                            .padding([.leading, .trailing], 30)
+                                            .padding([.top, .bottom], 7)
+                                            .background(.ultraThinMaterial)
+                                            .clipShape(.capsule)
+                                            .padding([.bottom], 10)
                                             
-                                        } label: {
-                                            Text("Regenerate")
-                                                .font(.system(size: 15, weight: .bold))
                                             
+                                            Button {
+                                                
+                                            } label: {
+                                                Text("Looks Good!")
+                                                    .font(.system(size: 15, weight: .bold))
+                                                    .foregroundStyle(.white)
+                                                
+                                                
+                                            }
+                                            .padding([.leading, .trailing], 30)
+                                            .padding([.top, .bottom], 7)
+                                            .background(.blue)
+                                            .clipShape(.capsule)
+                                            .padding([.bottom], 10)
                                         }
-                                        .padding([.leading, .trailing], 30)
-                                        .padding([.top, .bottom], 7)
-                                        .background(.ultraThinMaterial)
-                                        .clipShape(.capsule)
-                                        .padding([.bottom], 10)
-                                        
-                                        
-                                        Button {
-                                            
-                                        } label: {
-                                            Text("Looks Good!")
-                                                .font(.system(size: 15, weight: .bold))
-                                                .foregroundStyle(.white)
-                                            
-                                            
-                                        }
-                                        .padding([.leading, .trailing], 30)
-                                        .padding([.top, .bottom], 7)
-                                        .background(.blue)
-                                        .clipShape(.capsule)
-                                        .padding([.bottom], 10)
                                     }
                                     
                                 }
@@ -139,11 +142,12 @@ struct HomeView: View {
                             }
                             if unableToGenerateOutfit {
                                 VStack(spacing: 10) {
-                                    Image(systemName: "xmark.octagon.fill")
-                                        .font(.system(size: 60, weight: .bold))
+                                    Image(systemName: "tshirt")
+                                        .font(.system(size: 70))
                                         .padding()
-                                    Text("Unable to generate outfit.")
+                                    Text("Your closet's a little empty.")
                                         .font(.system(size: 25, weight: .bold))
+                                        .multilineTextAlignment(.center)
                                     Text("Try adding some clothing items in the 'Clothing' tab to get started.")
                                         .font(.system(size: 15))
                                         .multilineTextAlignment(.center)
@@ -196,7 +200,7 @@ struct HomeView: View {
                                                             return
                                                         }
                                                         
-                                                        let generatedOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops,
+                                                        let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops,
                                                           bottoms: separatedClothingItems.bottoms,
                                                           footwear: separatedClothingItems.footwear,
                                                           accessories: [],
@@ -207,7 +211,7 @@ struct HomeView: View {
                                                         
                                                         try? context.save()
                                                     } else {
-                                                        let generatedOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: [], occasionTitle: "", occasionIdentifier: nil)
+                                                        let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: [], occasionTitle: "", occasionIdentifier: nil)
                                                         
                                                         dailyOutfitList[0].dailyOutfit = generatedOutfit
                                                         
@@ -235,7 +239,15 @@ struct HomeView: View {
                                         
                                         
                                         Button {
-                                            
+                                            if selectedEventIdentifier != nil {
+                                                guard let editingOutfitIndex = dailyOutfitList.first?.eventOutfits.firstIndex(where: { $0.occasionIdentifier == selectedEventIdentifier
+                                                }) else {
+                                                    print("Couldn't find event outfit")
+                                                    return
+                                                }
+                                            } else {
+                                                
+                                            }
                                         } label: {
                                             Text("Looks Good!")
                                                 .font(.system(size: 15, weight: .bold))
@@ -344,13 +356,13 @@ struct HomeView: View {
                     
                     Task {
                         if dailyOutfit == nil {
-                            dailyOutfit = await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, occasionTitle: "", occasionIdentifier: nil)
+                            dailyOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, occasionTitle: "", occasionIdentifier: nil)
                         }
                         
                         if eventOutfits == [] {
                             calendarManager.fetchEvents()
                             for event in calendarManager.events {
-                                eventOutfits.append(await generateDailyOutfitAI(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, occasionTitle: event.title.trimmingCharacters(in: .whitespacesAndNewlines), occasionIdentifier: event.eventIdentifier))
+                                eventOutfits.append(await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.misc, occasionTitle: event.title.trimmingCharacters(in: .whitespacesAndNewlines), occasionIdentifier: event.eventIdentifier))
                             }
                         }
                         
