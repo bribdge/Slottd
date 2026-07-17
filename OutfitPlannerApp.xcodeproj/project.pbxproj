@@ -257,6 +257,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "This app needs full access to your calendar to generate outfits.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to the camera to add and edit clothing item photos.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to the Photo Library to add and edit clothing item photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -296,6 +297,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "This app needs full access to your calendar to generate outfits.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to the camera to add and edit clothing item photos.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to the Photo Library to add and edit clothing item photos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

@@ -161,14 +161,41 @@ struct OutfitCardView: View {
                     
                 }
                 .scrollIndicators(.hidden)
-                ZStack(alignment: .topLeading) {
-                    Text(selectedOutfit?.rationale ?? "")
-                        .font(.system(size: 14, design: .rounded))
-                        .padding()
+                VStack(spacing: 6) {
+                    if model.isAvailable {
+                        HStack {
+                            Label("Why this works", systemImage: "sparkles")
+                                .font(.system(size: 17, weight: .bold, design: .rounded))
+                            Spacer()
+                        }
+                        .padding(.leading)
+                    }
+
+                    ZStack(alignment: .topLeading) {
+                        if model.isAvailable {
+                            VStack {
+                                Text(selectedOutfit?.rationale ?? "")
+                                    .font(.system(size: 14, design: .rounded))
+                                    .padding()
+                            }
+                        } else {
+                            VStack {
+                                HStack(spacing: 15) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundStyle(.gray)
+                                    Text(modelAvalibility ?? "")
+                                        .font(.system(size: 15, design: .rounded))
+                                        .foregroundStyle(.gray)
+                                }
+                                .padding()
+                            }
+                        }
+                    }
+                    .frame(minWidth: 300, maxWidth: 500)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(17)
                 }
-                .frame(minWidth: 300, maxWidth: 500)
-                .background(.ultraThinMaterial)
-                .cornerRadius(17)
                 .padding()
             }
         } // vertical scroll

@@ -19,6 +19,8 @@ struct EditClothingItemView: View {
     @State private var selectedItem: PhotosPickerItem? // for photos picker (obviously)
     @State private var showConfirmation = false
     
+    @State private var showingCamera = false
+    
     var body: some View {
         List {
             Section("Clothing Item Name") {
@@ -68,18 +70,17 @@ struct EditClothingItemView: View {
                     }
                     
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                        Label("Add Image", systemImage: "photo")
+                        Label("Add Photo", systemImage: "photo")
                     }
                     
-                    if (selectedClothingItem.image != nil) {
-                        Button {
-                            withAnimation(.easeInOut) {
-                                selectedClothingItem.image = nil
-                            }
-                        } label: {
-                            Label("Remove Image", systemImage: "xmark")
-                                .foregroundStyle(.red)
-                        }
+                    Button(action: {
+                        showingCamera = true
+                    }){
+                        Label("Take Photo", systemImage: "camera")
+                    }
+                    .sheet(isPresented: $showingCamera) {
+                        CameraView(imageData: $selectedClothingItem.image)
+                            .ignoresSafeArea()
                     }
                 }
             }

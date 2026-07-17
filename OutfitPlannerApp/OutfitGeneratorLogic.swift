@@ -290,8 +290,8 @@ struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
     let index: Int
     
-    @Guide(description: "20-25 word styling breakdown using the format: 'This outfit combines [X] and [Y] for a [Z] look.' Mention why the outfit fits the occasion.")
-    let rationale: String
+    @Guide(description: "A VERY brief, casual reason this outfit works, and why it fits the occasion (If provided).")
+    var rationale: String
 }
 
 let sportyKeywords = [

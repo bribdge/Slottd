@@ -60,7 +60,7 @@ struct NewClothingItemView: View {
                     }
                     
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                        Label("Add Image", systemImage: "photo")
+                        Label("Add Photo", systemImage: "photo")
                     }
                     
                     Button(action: {
@@ -72,6 +72,7 @@ struct NewClothingItemView: View {
                         CameraView(imageData: $imageData)
                             .ignoresSafeArea()
                     }
+                    .presentationBackground(.black)
                     
                     if (imageData != nil) {
                         Button {
@@ -117,7 +118,7 @@ struct NewClothingItemView: View {
 
                     dismiss()
                 }
-                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines) == "")
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines) == "" || imageData == nil)
             }
         }
         .task(id: selectedItem) {
