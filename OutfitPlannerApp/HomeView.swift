@@ -66,7 +66,7 @@ struct HomeView: View {
                     VStack() {
                         EventPickerModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
                         if isGenerating || unableToGenerateOutfit {
-                            PlaceholderOutfitModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
+                            PlaceholderOutfitModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier, isGenerating: $isGenerating, unableToGenerateOutfit: $unableToGenerateOutfit)
                         } else {
                             SelectedOutfitModuleView(isGenerating: $isGenerating, calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
                         }
@@ -121,10 +121,10 @@ struct HomeView: View {
 
         withAnimation { isGenerating = true }
 
-        while !dailyOutfitList.isEmpty {
-            context.delete(dailyOutfitList[0])
-            try? context.save()
+        for outfitList in dailyOutfitList {
+            context.delete(outfitList)
         }
+        try? context.save()
 
         Task {
             calendarManager.fetchEvents()

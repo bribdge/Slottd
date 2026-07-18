@@ -82,7 +82,7 @@ struct OutfitCardView: View {
                                         .opacity(0.5)
                                         .blur(radius: 5)
                                     Image(systemName: "photo.trianglebadge.exclamationmark")
-                                        .font(.system(size: 40, weight: .regular, design: .rounded))
+                                        .font(.system(size: 40, weight: .regular))
                                         .offset(y: -5)
                                 }
                                 Text(selectedOutfit?.top?.name ?? "")
@@ -115,7 +115,7 @@ struct OutfitCardView: View {
                                             .opacity(0.5)
                                             .blur(radius: 5)
                                         Image(systemName: "photo.trianglebadge.exclamationmark")
-                                            .font(.system(size: 40, weight: .regular, design: .rounded))
+                                            .font(.system(size: 40, weight: .regular))
                                             .offset(y: -5)
                                     }
                                     Text(selectedOutfit?.bottom?.name ?? "")
@@ -147,7 +147,7 @@ struct OutfitCardView: View {
                                         .opacity(0.5)
                                         .blur(radius: 5)
                                     Image(systemName: "photo.trianglebadge.exclamationmark")
-                                        .font(.system(size: 40, weight: .regular, design: .rounded))
+                                        .font(.system(size: 40, weight: .regular))
                                         .offset(y: -5)
                                 }
                                 Text(selectedOutfit?.footwear?.name ?? "")
@@ -165,7 +165,7 @@ struct OutfitCardView: View {
                     if model.isAvailable {
                         HStack {
                             Label("Why this works", systemImage: "sparkles")
-                                .font(.system(size: 17, weight: .bold, design: .rounded))
+                                .font(.system(size: 17, weight: .bold))
                             Spacer()
                         }
                         .padding(.leading)
@@ -175,7 +175,7 @@ struct OutfitCardView: View {
                         if model.isAvailable {
                             VStack {
                                 Text(selectedOutfit?.rationale ?? "")
-                                    .font(.system(size: 14, design: .rounded))
+                                    .font(.system(size: 14))
                                     .padding()
                             }
                         } else {
@@ -185,7 +185,7 @@ struct OutfitCardView: View {
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundStyle(.gray)
                                     Text(modelAvalibility ?? "")
-                                        .font(.system(size: 15, design: .rounded))
+                                        .font(.system(size: 15))
                                         .foregroundStyle(.gray)
                                 }
                                 .padding()

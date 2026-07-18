@@ -58,7 +58,7 @@ struct SelectedOutfitModuleView: View {
                             VStack {
                                 HStack {
                                     Text(calendarManager.eventStore.event(withIdentifier: identifier)?.title ?? "Unknown Event")
-                                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                                        .font(.system(size: 24, weight: .bold))
                                     Spacer()
                                 }
                                 HStack {
@@ -75,7 +75,7 @@ struct SelectedOutfitModuleView: View {
                         } else {
                             HStack {
                                 Text("Daily Outfit")
-                                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                                    .font(.system(size: 24, weight: .bold))
                                 Spacer()
                             }
                             .padding([.top, .leading], 20)

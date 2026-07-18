@@ -33,51 +33,32 @@
         var body: some View {
             ZStack(alignment: .topLeading) {
                 Text(Date.now.formatted(.dateTime.weekday(.wide).day(.defaultDigits).month(.wide)))
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .bold))
                     .padding(.leading, 25)
                     .padding(.top, 20)
      
-                picker
-            }
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 25))
-            .frame(height: 120)
-            .padding()
-        }
-     
-        @ViewBuilder
-        private var picker: some View {
-            if calendarManager.events != [] {
-                List {
-                    Picker("Occasion", selection: $selectedEventIdentifier) {
-                        Label(" Daily Outfit", systemImage: "calendar").tag(nil as String?)
-                        ForEach(calendarManager.events, id: \.eventIdentifier) { event in
-                            Text(event.title.trimmingCharacters(in: .whitespaces))
-                                .tag(event.eventIdentifier as String?)
-                        }
-                    }
-                }
-                .scrollDisabled(true)
-                .frame(minHeight: 85)
-                .scrollContentBackground(.hidden)
-                .offset(y: 50)
-            } else {
-                VStack {
-                    if let identifier = selectedEventIdentifier {
-                        VStack {
-                            Text(calendarManager.eventStore.event(withIdentifier: identifier)?.title ?? "Unknown Event")
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
-                            if let event = calendarManager.eventStore.event(withIdentifier: identifier) {
-                                Text(event.startDate, format: .dateTime.hour().minute())
-                            } else {
-                                Text("No event selected")
+                ZStack {
+                    List {
+                        if calendarManager.events != [] {
+                            Picker("Occasion", selection: $selectedEventIdentifier) {
+                                Label(" Daily Outfit", systemImage: "calendar").tag(nil as String?)
+                                ForEach(calendarManager.events ,id: \.eventIdentifier) { event in
+                                    Text(event.title.trimmingCharacters(in: .whitespaces)).tag(event.eventIdentifier as String?)
+                                }
                             }
+                        } else {
+                            Text("Daily Outfit")
                         }
-                    } else {
-                        Text("Daily Outfit")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
                     }
+                    .scrollDisabled(true)
+                    .frame(minHeight: 85)
+                    .scrollContentBackground(.hidden)
+                    .offset(y: 50)
                 }
-                .offset(y: 50)
             }
-        }
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 25))
+        .frame(height: 120)
+        .padding()
     }
+ 
+}
