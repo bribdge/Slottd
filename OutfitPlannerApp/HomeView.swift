@@ -133,7 +133,8 @@ struct HomeView: View {
                 tops: separatedClothingItems.tops,
                 bottoms: separatedClothingItems.bottoms,
                 footwear: separatedClothingItems.footwear,
-                accessories: separatedClothingItems.misc,
+                accessories: separatedClothingItems.accessories,
+                outerwear: separatedClothingItems.outerwear,
                 occasionTitle: "",
                 occasionIdentifier: nil
             )
@@ -144,7 +145,8 @@ struct HomeView: View {
                     tops: separatedClothingItems.tops,
                     bottoms: separatedClothingItems.bottoms,
                     footwear: separatedClothingItems.footwear,
-                    accessories: separatedClothingItems.misc,
+                    accessories: separatedClothingItems.accessories,
+                    outerwear: separatedClothingItems.outerwear,
                     occasionTitle: event.title.trimmingCharacters(in: .whitespacesAndNewlines),
                     occasionIdentifier: event.eventIdentifier
                 ))

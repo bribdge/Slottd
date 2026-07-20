@@ -27,7 +27,7 @@ struct MainTabView: View {
             ClothingItemsView().tabItem() {
                 Label("Clothing", systemImage: "hanger")
             }
-            ClothingItemsView().tabItem() {
+            FavoriteOutfitsView().tabItem() {
                 Label("Favorites", systemImage: "star")
             }
         }

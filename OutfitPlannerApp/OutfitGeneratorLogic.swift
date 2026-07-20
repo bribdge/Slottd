@@ -109,7 +109,29 @@ class ClothingItem {
 }
 
 @Model
+class StarredOutfit {
+    var sourceID: UUID
+    var top: ClothingItem?
+    var bottom: ClothingItem?
+    var accessories: [ClothingItem] = []
+    var footwear: ClothingItem?
+    var occasionIdentifier: String?
+    var rationale: String?
+    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, sourceID: UUID) {
+        self.accessories = accessories
+        self.footwear = footwear
+        self.top = top
+        self.bottom = bottom
+        self.occasionIdentifier = occasionIdentifier
+        self.rationale = rationale
+        self.sourceID = sourceID
+    }
+}
+
+@Model
 class Outfit {
+    var id: UUID = UUID()
+    
     @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsTop)
     var top: ClothingItem?
     
@@ -267,32 +289,47 @@ func styleDoesClash(style1: ClothingStyle, style2: ClothingStyle) -> Bool {
     }
 }
 
-func separateClothingByType(clothingItems: [ClothingItem]) -> (tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], misc: [ClothingItem]) {
+func separateClothingByType(clothingItems: [ClothingItem]) -> (tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], outerwear: [ClothingItem], accessories: [ClothingItem]) {
     var tops: [ClothingItem] = []
     var bottoms: [ClothingItem] = []
     var footwear: [ClothingItem] = []
-    var misc: [ClothingItem] = []
+    var outerwear: [ClothingItem] = []
+    var accessories: [ClothingItem] = []
     
     for clothingItem in clothingItems {
         switch clothingItem.type {
             case .top, .fullBody:  tops.append(clothingItem)
             case .bottom:          bottoms.append(clothingItem)
             case .footwear:        footwear.append(clothingItem)
-            default:               misc.append(clothingItem)
+            case .outerwear:       outerwear.append(clothingItem)
+            case .accessory:       accessories.append(clothingItem)
         }
     }
     
-    return (tops, bottoms, footwear, misc)
+    return (tops, bottoms, footwear, outerwear, accessories)
+}
+
+@Generable()
+struct AccessoryResponse {
+    @Guide(description: "A value representing if the selecte outfit even NEEDS accessories. Return true if it does. Be strict.")
+    var outfitNeedsAccessories: Bool
+    
+    @Guide(description: "The index(es) of the accessories you chose.", .element(.range(0...7)))
+    var indexes: [Int]
+    
+    @Guide(description: "A VERY brief, casual reason why the accessories fit the outfit.")
+    var rationale: String
 }
 
 @Generable()
 struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
-    let index: Int
+    var index: Int
     
-    @Guide(description: "A VERY brief, casual reason this outfit works, and why it fits the occasion (If provided).")
+    @Guide(description: "A VERY brief, casual reason this outfit works, and why it fits the occasion (If provided). Never reference the other choices.")
     var rationale: String
 }
+
 
 let sportyKeywords = [
     "workout", "gym session", "weight lifting", "weightlifting", "free weights", "cardio", "fitness class", "bootcamp",
@@ -324,12 +361,14 @@ let boldKeywords = [
     "costume party", "halloween party", "themed party", "cosplay"
 ]
 
-func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) async -> Outfit {
+func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], outerwear: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) async -> Outfit {
     print("Received occasion: [\(occasionTitle)]")
     let model = SystemLanguageModel.default
     let session = LanguageModelSession()
     var randomOutfitCombinations: [Outfit] = []
     var randomOutfitCombinationDescriptions: [String] = []
+    var randomAccessories: [ClothingItem] = []
+    var randomAccessoryDescriptions: [String] = []
     var isValid: Bool = true
     
     // filtering clothing items
@@ -407,9 +446,18 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
             randomOutfitCombinationDescriptions.append(randomOutfit.aiDescription)
             break inner
             }
+        if accessories != [] {
+            randomAccessories.append(accessories.randomElement()!)
+            randomAccessoryDescriptions.append(accessories.randomElement()!.description)
+        }
+        
         }
         
         let formattedOutfits = randomOutfitCombinationDescriptions.enumerated() // .enumerated adds the ability to show the index as well. $0.offset is the index and $0.element is the actual item
+            .map { "[\($0.offset)] \($0.element)" }
+            .joined(separator: "\n")
+        
+        let formattedAccessories = randomAccessoryDescriptions.enumerated() // .enumerated adds the ability to show the index as well. $0.offset is the index and $0.element is the actual item
             .map { "[\($0.offset)] \($0.element)" }
             .joined(separator: "\n")
         
@@ -427,33 +475,51 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
             
             \(formattedOutfits) 
             """
-
-            print(prompt)
-            
             let response = try await session.respond(to: prompt, generating: OutfitResponse.self) // await forces the code ahead to stop and wait for the response to finish loading
-            
             let chosenOutfit = randomOutfitCombinations[response.content.index]
             
             print(chosenOutfit.description)
             
-            if randomOutfitCombinations.indices.contains(response.content.index) {
-                print(response.content.rationale)
-                chosenOutfit.rationale = response.content.rationale
-                return chosenOutfit
-            } else {
-                print("AI HALLUCINATED THE INDEX BOI")
-                return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+            let accessoryPrompt = """
+                You are a professional accessory picking AI. Your task is to find the best accessories to math the outfit provided
+
+                CRITERIA FOR "FASHIONABLE":
+                - Color Harmony: Look for complementary colors or intentional tonal palettes.
+                - Style Cohesion: High marks for pieces that share a cohesive aesthetic (e.g., Minimalist + Minimalist, Retro + Bohemian). Avoid jarring style clashes (e.g., Avant Garde + Sporty).
+            
+                Always prioritize making the accessory fit the outfit rather than what looks most stylish on its own.
+            
+                OUTFIT: \(chosenOutfit.aiDescription)
+            
+            \(formattedAccessories)
+                
+            """
+            
+            if accessories != [] {
+                let accessoryResponse = try await session.respond(to: accessoryPrompt, generating: AccessoryResponse.self)
+                print(accessoryPrompt)
+                print(accessoryResponse.content.rationale)
+                
+                for accessoryIndex in accessoryResponse.content.indexes {
+                    chosenOutfit.accessories.append(randomAccessories[accessoryIndex])
+                }
             }
+            
+            
+            print(response.content.rationale)
+            chosenOutfit.rationale = response.content.rationale
+            print(chosenOutfit.accessories.count)
+            return chosenOutfit
         } catch {
             print("failed : \(error)")
-            return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+            return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
         }
     }
     print("Model is not avaliable \(model.availability)")
-    return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, accessories: accessories, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
+    return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
 }
 
-func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], accessories: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) -> Outfit {
+func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], footwear: [ClothingItem], occasionTitle: String, occasionIdentifier: String?) -> Outfit {
     print("generating without AI")
     var isValid: Bool = true
     

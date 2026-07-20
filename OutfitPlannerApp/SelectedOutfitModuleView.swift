@@ -14,6 +14,7 @@ struct SelectedOutfitModuleView: View {
     @Environment(\.modelContext) private var context
 
     @Query private var dailyOutfitList: [DailyOutfitList]
+    @Query private var starredOutfits: [StarredOutfit]
     @Query private var clothingItems: [ClothingItem]
 
     @Binding var isGenerating: Bool
@@ -65,7 +66,10 @@ struct SelectedOutfitModuleView: View {
                                     if let event = calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier!) {
                                         HStack {
                                             Image(systemName: "clock")
-                                            Text("\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())")
+                                            Text(event.isAllDay ?
+                                                "\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())"
+                                                 :
+                                                "All Day")
                                             Spacer()
                                         }
                                     }
@@ -86,15 +90,31 @@ struct SelectedOutfitModuleView: View {
                             let pressImpact = UIImpactFeedbackGenerator(style: .medium)
                             pressImpact.impactOccurred()
                             
-                            selectedOutfit?.isStarred.toggle()
+                            if selectedOutfit?.isStarred == true {
+                                selectedOutfit?.isStarred = false
+                                if let starredOutfit = starredOutfits.first(where: { $0.sourceID == selectedOutfit?.id }) {
+                                    context.delete(starredOutfit)
+                                    
+                                    try? context.save()
+                                }
+                            } else {
+                                selectedOutfit?.isStarred = true
+                                if let convertedOutfit = convertOutfitToStarredOutfit(outfit: selectedOutfit) {
+                                    context.insert(convertedOutfit)
+                                    
+                                    try? context.save()
+                                }
+                            }
+                            
+                            print(starredOutfits)
                         } label: {
-                            Image(systemName: "star")
+                            Image(systemName: (selectedOutfit?.isStarred == true) ? "star.fill" : "star")
                                 .foregroundStyle(.white)
                                 .padding(7)
                                 .glassEffect(.regular.interactive().tint(buttonColor), in: .circle)
                         }
                         .padding([.top, .trailing], 20)
-                        
+                        .shadow(color: buttonColor, radius: (selectedOutfit?.isStarred == true) ? 5 : 0)
                     }
                     
                     
@@ -194,7 +214,8 @@ struct SelectedOutfitModuleView: View {
                         tops: separatedClothingItems.tops,
                         bottoms: separatedClothingItems.bottoms,
                         footwear: separatedClothingItems.footwear,
-                        accessories: [],
+                        accessories: separatedClothingItems.accessories,
+                        outerwear: separatedClothingItems.outerwear,
                         occasionTitle: calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier ?? "")?.title ?? "Unknown Event",
                         occasionIdentifier: selectedEventIdentifier)
 
@@ -202,7 +223,7 @@ struct SelectedOutfitModuleView: View {
                     
                     try? context.save()
                 } else {
-                    let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: [], occasionTitle: "", occasionIdentifier: nil)
+                    let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.accessories, outerwear: separatedClothingItems.outerwear, occasionTitle: "", occasionIdentifier: nil)
                     
                     dailyOutfitList[0].dailyOutfit = generatedOutfit
                     
@@ -217,6 +238,22 @@ struct SelectedOutfitModuleView: View {
             
         }
     }
+    
+    private func convertOutfitToStarredOutfit(outfit: Outfit?) -> StarredOutfit? {
+        guard let outfit else { return nil }
+        
+        let returningOutfit = StarredOutfit(
+            top: outfit.top,
+            bottom: outfit.bottom,
+            accessories: outfit.accessories,
+            footwear: outfit.footwear,
+            occasionIdentifier: outfit.occasionIdentifier,
+            rationale: outfit.rationale,
+            sourceID: outfit.id)
+        
+        return returningOutfit
+    }
+    
 
 }
 

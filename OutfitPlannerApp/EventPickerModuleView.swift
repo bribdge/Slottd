@@ -47,7 +47,7 @@
                                 }
                             }
                         } else {
-                            Text("Daily Outfit")
+                            Text("No Events Today")
                         }
                     }
                     .scrollDisabled(true)

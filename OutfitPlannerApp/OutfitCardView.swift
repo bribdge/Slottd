@@ -157,6 +157,9 @@ struct OutfitCardView: View {
                             }
                         }
                         
+                        if selectedOutfit?.accessories != [] {
+                            AccessoriesCardView(selectedOutfit: selectedOutfit)
+                        }
                     }
                     
                 }
