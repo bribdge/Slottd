@@ -16,7 +16,7 @@
      
         var backgroundColor: Color {
             if colorScheme == .light {
-                return Color(red: 0.98, green: 0.97, blue: 0.93)
+                return Color(red: 0.98, green: 0.97, blue: 0.96) 
             } else {
                 return Color(red: 0.07, green: 0.05, blue: 0.04)
             }

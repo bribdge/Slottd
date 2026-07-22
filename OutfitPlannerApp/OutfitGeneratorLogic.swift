@@ -110,6 +110,7 @@ class ClothingItem {
 
 @Model
 class StarredOutfit {
+    var name: String
     var sourceID: UUID
     var top: ClothingItem?
     var bottom: ClothingItem?
@@ -117,7 +118,8 @@ class StarredOutfit {
     var footwear: ClothingItem?
     var occasionIdentifier: String?
     var rationale: String?
-    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, sourceID: UUID) {
+    init(name: String, top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, sourceID: UUID) {
+        self.name = name
         self.accessories = accessories
         self.footwear = footwear
         self.top = top

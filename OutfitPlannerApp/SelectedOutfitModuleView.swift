@@ -35,7 +35,7 @@ struct SelectedOutfitModuleView: View {
 
     var backgroundColor: Color {
         if colorScheme == .light {
-            return Color(red: 0.98, green: 0.97, blue: 0.93)
+            return Color(red: 0.98, green: 0.97, blue: 0.96) 
         } else {
             return Color(red: 0.07, green: 0.05, blue: 0.04)
         }
@@ -67,9 +67,10 @@ struct SelectedOutfitModuleView: View {
                                         HStack {
                                             Image(systemName: "clock")
                                             Text(event.isAllDay ?
-                                                "\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())"
+                                                "All Day"
                                                  :
-                                                "All Day")
+                                                "\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())"
+                                                )
                                             Spacer()
                                         }
                                     }
@@ -99,7 +100,7 @@ struct SelectedOutfitModuleView: View {
                                 }
                             } else {
                                 selectedOutfit?.isStarred = true
-                                if let convertedOutfit = convertOutfitToStarredOutfit(outfit: selectedOutfit) {
+                                if let convertedOutfit = convertOutfitToStarredOutfit(outfit: selectedOutfit, occassionTitle: selectedEventIdentifier == nil ? nil : calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier!)?.title) {
                                     context.insert(convertedOutfit)
                                     
                                     try? context.save()
@@ -239,10 +240,11 @@ struct SelectedOutfitModuleView: View {
         }
     }
     
-    private func convertOutfitToStarredOutfit(outfit: Outfit?) -> StarredOutfit? {
+    private func convertOutfitToStarredOutfit(outfit: Outfit?, occassionTitle: String?) -> StarredOutfit? {
         guard let outfit else { return nil }
         
         let returningOutfit = StarredOutfit(
+            name: occassionTitle == nil ? "Outfit" : "\(occassionTitle.unsafelyUnwrapped) Outfit",
             top: outfit.top,
             bottom: outfit.bottom,
             accessories: outfit.accessories,
