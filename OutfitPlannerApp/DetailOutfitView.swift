@@ -11,7 +11,12 @@ struct DetailOutfitView: View {
     var selectedOutfit: StarredOutfit
     
     var body: some View {
-        Text(selectedOutfit.name)
+        NavigationStack {
+            VStack {
+                
+            }
+            .navigationTitle(selectedOutfit.name)
+        }
     }
 }
 

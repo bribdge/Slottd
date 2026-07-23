@@ -8,12 +8,15 @@
 import SwiftUI
 
 struct OutfitItemScrollView: View {
-    var selectedOutfit: Outfit?
+    var top: ClothingItem?
+    var bottom: ClothingItem?
+    var footwear: ClothingItem?
+    var accessories: [ClothingItem]
     
     var body: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 15) {
-                if let selectedImageData = selectedOutfit?.top?.image,
+                if let selectedImageData = top?.image,
                    let uiImage = UIImage(data: selectedImageData) {
                     VStack(spacing: 10) {
                         Image(uiImage: uiImage)
@@ -21,7 +24,7 @@ struct OutfitItemScrollView: View {
                             .scaledToFill()
                             .frame(width: 150, height: 150)
                             .cornerRadius(25)
-                        Text(selectedOutfit?.top?.name ?? "")
+                        Text(top?.name ?? "")
                             .frame(width: 125)
                             .lineLimit(1)
                             .font(.system(size: 14))
@@ -39,7 +42,7 @@ struct OutfitItemScrollView: View {
                                 .font(.system(size: 40, weight: .regular))
                                 .offset(y: -5)
                         }
-                        Text(selectedOutfit?.top?.name ?? "")
+                        Text(top?.name ?? "")
                             .frame(width: 125)
                             .lineLimit(1)
                             .font(.system(size: 14))
@@ -47,8 +50,8 @@ struct OutfitItemScrollView: View {
                     .padding(.leading)
                 }
                 
-                if selectedOutfit?.bottom != nil {
-                    if let selectedImageData = selectedOutfit?.bottom?.image,
+                if bottom != nil {
+                    if let selectedImageData = bottom?.image,
                        let uiImage = UIImage(data: selectedImageData) {
                         VStack {
                             Image(uiImage: uiImage)
@@ -56,7 +59,7 @@ struct OutfitItemScrollView: View {
                                 .scaledToFill()
                                 .frame(width: 150, height: 150)
                                 .cornerRadius(25)
-                            Text(selectedOutfit?.bottom?.name ?? "")
+                            Text(bottom?.name ?? "")
                                 .frame(width: 125)
                                 .lineLimit(1)
                                 .font(.system(size: 14))
@@ -72,7 +75,7 @@ struct OutfitItemScrollView: View {
                                     .font(.system(size: 40, weight: .regular))
                                     .offset(y: -5)
                             }
-                            Text(selectedOutfit?.bottom?.name ?? "")
+                            Text(bottom?.name ?? "")
                                 .frame(width: 125)
                                 .lineLimit(1)
                                 .font(.system(size: 14))
@@ -80,7 +83,7 @@ struct OutfitItemScrollView: View {
                     }
                 }
                 
-                if let selectedImageData = selectedOutfit?.footwear?.image,
+                if let selectedImageData = footwear?.image,
                    let uiImage = UIImage(data: selectedImageData) {
                     VStack {
                         Image(uiImage: uiImage)
@@ -88,7 +91,7 @@ struct OutfitItemScrollView: View {
                             .scaledToFill()
                             .frame(width: 150, height: 150)
                             .cornerRadius(25)
-                        Text(selectedOutfit?.footwear?.name ?? "")
+                        Text(footwear?.name ?? "")
                             .frame(width: 125)
                             .lineLimit(1)
                             .font(.system(size: 14))
@@ -104,15 +107,15 @@ struct OutfitItemScrollView: View {
                                 .font(.system(size: 40, weight: .regular))
                                 .offset(y: -5)
                         }
-                        Text(selectedOutfit?.footwear?.name ?? "")
+                        Text(footwear?.name ?? "")
                             .frame(width: 125)
                             .lineLimit(1)
                             .font(.system(size: 14))
                     }
                 }
                 
-                if selectedOutfit?.accessories != [] {
-                    AccessoriesCardView(selectedOutfit: selectedOutfit)
+                if accessories != [] {
+                    AccessoriesCardView(accessories: accessories)
                 }
             }
             
@@ -122,5 +125,5 @@ struct OutfitItemScrollView: View {
 }
 
 #Preview {
-    OutfitItemScrollView()
+    MainTabView()
 }

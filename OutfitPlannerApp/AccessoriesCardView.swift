@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AccessoriesCardView: View {
-    var selectedOutfit: Outfit?
+    var accessories: [ClothingItem]
     
     
     var body: some View {
@@ -19,8 +19,8 @@ struct AccessoriesCardView: View {
                     .foregroundStyle(.ultraThinMaterial)
                 VStack {
                     HStack {
-                        if selectedOutfit?.accessories.count ?? 0 >= 1 {
-                            if let selectedImageData = selectedOutfit?.accessories[0].image,
+                        if accessories.count >= 1 {
+                            if let selectedImageData = accessories[0].image,
                                let uiImage = UIImage(data: selectedImageData) {
                                 VStack {
                                     Image(uiImage: uiImage)
@@ -37,8 +37,8 @@ struct AccessoriesCardView: View {
                                 .frame(width: 60, height: 60)
                                 .clipped()
                         }
-                        if selectedOutfit?.accessories.count ?? 0 >= 2 {
-                            if let selectedImageData = selectedOutfit?.accessories[1].image,
+                        if accessories.count >= 2 {
+                            if let selectedImageData = accessories[1].image,
                                let uiImage = UIImage(data: selectedImageData) {
                                 VStack {
                                     Image(uiImage: uiImage)
@@ -57,8 +57,8 @@ struct AccessoriesCardView: View {
                         }
                     }
                     HStack {
-                        if selectedOutfit?.accessories.count ?? 0 >= 3 {
-                            if let selectedImageData = selectedOutfit?.accessories[2].image,
+                        if accessories.count >= 3 {
+                            if let selectedImageData = accessories[2].image,
                                let uiImage = UIImage(data: selectedImageData) {
                                 VStack {
                                     Image(uiImage: uiImage)
@@ -75,8 +75,8 @@ struct AccessoriesCardView: View {
                                 .frame(width: 60, height: 60)
                                 .clipped()
                         }
-                        if selectedOutfit?.accessories.count ?? 0 >= 4 {
-                            if let selectedImageData = selectedOutfit?.accessories[3].image,
+                        if accessories.count >= 4 {
+                            if let selectedImageData = accessories[3].image,
                                let uiImage = UIImage(data: selectedImageData) {
                                 VStack {
                                     Image(uiImage: uiImage)
@@ -107,5 +107,5 @@ struct AccessoriesCardView: View {
 }
 
 #Preview {
-    AccessoriesCardView()
+    MainTabView()
 }

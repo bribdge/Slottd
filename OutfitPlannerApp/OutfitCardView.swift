@@ -58,7 +58,11 @@ struct OutfitCardView: View {
         ScrollView(.vertical) {
             VStack(spacing: 0) {
 
-                OutfitItemScrollView(selectedOutfit: selectedOutfit)
+                OutfitItemScrollView(
+                    top: selectedOutfit?.top,
+                    bottom: selectedOutfit?.bottom,
+                    footwear: selectedOutfit?.footwear,
+                    accessories: selectedOutfit?.accessories ?? [])
                 
                 VStack(spacing: 6) {
                     if model.isAvailable {
