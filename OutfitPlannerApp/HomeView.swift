@@ -23,11 +23,13 @@ struct HomeView: View {
     @AppStorage("dateLastOpened")
         private var dateLastOpened = Date.distantPast
     
-    @State private var calendarManager: CalendarManager = CalendarManager()
-    
+    var calendarManager: CalendarManager
     @State private var isGenerating = false
     @State private var calendarAccessDenied = false
-    @State private var unableToGenerateOutfit: Bool = false
+    @AppStorage("unableToGenerateOutfit") var unableToGenerateOutfit: Bool = false
+    
+    @State private var showingInfoSheet = false
+    @State private var showingAIInfoSheet = false
     
     @State private var selectedEventIdentifier: String? = nil
     var selectedOutfit: Outfit? {
@@ -74,6 +76,19 @@ struct HomeView: View {
                     }
                     .navigationTitle("Today's Outfits")
                     
+                }
+                .toolbar {
+                    ToolbarItem {
+                        Button {
+                            showingInfoSheet.toggle()
+                        } label: {
+                            Image(systemName: "info")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showingInfoSheet) {
+                    BetaInfoSheetView()
+                        .presentationDetents([.fraction(0.45), .fraction(0.6)])
                 }
         }
         .onChange(of: clothingItems.count) {
@@ -134,7 +149,6 @@ struct HomeView: View {
                 bottoms: separatedClothingItems.bottoms,
                 footwear: separatedClothingItems.footwear,
                 accessories: separatedClothingItems.accessories,
-                outerwear: separatedClothingItems.outerwear,
                 occasionTitle: "",
                 occasionIdentifier: nil
             )
@@ -146,7 +160,6 @@ struct HomeView: View {
                     bottoms: separatedClothingItems.bottoms,
                     footwear: separatedClothingItems.footwear,
                     accessories: separatedClothingItems.accessories,
-                    outerwear: separatedClothingItems.outerwear,
                     occasionTitle: event.title.trimmingCharacters(in: .whitespacesAndNewlines),
                     occasionIdentifier: event.eventIdentifier
                 ))

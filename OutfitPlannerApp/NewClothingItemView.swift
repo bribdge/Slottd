@@ -113,9 +113,6 @@ struct NewClothingItemView: View {
                     context.insert(itemToSave)
                     
                     try? context.save()
-                    
-                    print(clothingItems)
-
                     dismiss()
                 }
                 .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines) == "" || imageData == nil)

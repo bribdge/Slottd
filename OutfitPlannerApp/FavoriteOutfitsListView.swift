@@ -11,6 +11,7 @@ import SwiftData
 struct FavoriteOutfitsListView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query var starredOutfits: [StarredOutfit]
+    var calendarManager: CalendarManager
     
     @State var searchResults: [StarredOutfit] = []
     @State private var searchQuery = ""
@@ -58,7 +59,7 @@ struct FavoriteOutfitsListView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .navigationDestination(for: StarredOutfit.self) { outfit in
-                    DetailOutfitView(selectedOutfit: outfit)
+                    DetailOutfitView(calendarManager: calendarManager, title: outfit.name, selectedOutfit: outfit)
                 }
                 .searchable(
                     text: $searchQuery,

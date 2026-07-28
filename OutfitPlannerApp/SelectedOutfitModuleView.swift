@@ -86,7 +86,6 @@ struct SelectedOutfitModuleView: View {
                             .padding([.top, .leading], 20)
                         }
                         
-                        
                         Button {
                             let pressImpact = UIImpactFeedbackGenerator(style: .medium)
                             pressImpact.impactOccurred()
@@ -106,8 +105,6 @@ struct SelectedOutfitModuleView: View {
                                     try? context.save()
                                 }
                             }
-                            
-                            print(starredOutfits)
                         } label: {
                             Image(systemName: (selectedOutfit?.isStarred == true) ? "star.fill" : "star")
                                 .foregroundStyle(.white)
@@ -134,13 +131,11 @@ struct SelectedOutfitModuleView: View {
                             } label: {
                                 Text("Regenerate")
                                     .font(.system(size: 15, weight: .bold))
-                                    .foregroundStyle(buttonColor)
+                                    .padding([.leading, .trailing])
                                 
                             }
-                            .padding([.leading, .trailing], 30)
-                            .padding([.top, .bottom], 7)
-                            .background(.ultraThinMaterial)
                             .clipShape(.capsule)
+                            .buttonStyle(.glass)
                             .padding([.bottom], 10)
                             
                             
@@ -163,13 +158,11 @@ struct SelectedOutfitModuleView: View {
                                 Text("Looks Good!")
                                     .font(.system(size: 15, weight: .bold))
                                     .foregroundStyle(.white)
-                                
-                                
+                                    .padding([.leading, .trailing])
+
                             }
-                            .padding([.leading, .trailing], 30)
-                            .padding([.top, .bottom], 7)
-                            .background(buttonColor)
                             .clipShape(.capsule)
+                            .buttonStyle(.glassProminent)
                             .padding([.bottom], 10)
                         }
                     }
@@ -207,7 +200,6 @@ struct SelectedOutfitModuleView: View {
                         withAnimation() {
                             isGenerating = false
                         }
-                        print("Couldn't find event outfit")
                         return
                     }
                     
@@ -216,7 +208,6 @@ struct SelectedOutfitModuleView: View {
                         bottoms: separatedClothingItems.bottoms,
                         footwear: separatedClothingItems.footwear,
                         accessories: separatedClothingItems.accessories,
-                        outerwear: separatedClothingItems.outerwear,
                         occasionTitle: calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier ?? "")?.title ?? "Unknown Event",
                         occasionIdentifier: selectedEventIdentifier)
 
@@ -224,19 +215,16 @@ struct SelectedOutfitModuleView: View {
                     
                     try? context.save()
                 } else {
-                    let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.accessories, outerwear: separatedClothingItems.outerwear, occasionTitle: "", occasionIdentifier: nil)
+                    let generatedOutfit = await generateDailyOutfit(tops: separatedClothingItems.tops, bottoms: separatedClothingItems.bottoms, footwear: separatedClothingItems.footwear, accessories: separatedClothingItems.accessories, occasionTitle: "", occasionIdentifier: nil)
                     
                     dailyOutfitList[0].dailyOutfit = generatedOutfit
                     
                     try? context.save()
                 }
-                
                 withAnimation() {
                     isGenerating = false
                 }
-                
             }
-            
         }
     }
     
@@ -255,8 +243,6 @@ struct SelectedOutfitModuleView: View {
         
         return returningOutfit
     }
-    
-
 }
 
 #Preview {

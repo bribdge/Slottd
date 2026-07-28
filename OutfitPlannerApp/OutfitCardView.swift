@@ -38,18 +38,18 @@ struct OutfitCardView: View {
     @State private var selectedEvent: EKEvent? = nil
     
     let model = SystemLanguageModel.default
-    var modelAvalibility: String? {
+    var modelAvailability: String? {
         switch model.availability {
             case .available:
                 return nil
             case .unavailable(.deviceNotEligible):
-                return "Your device does not support smarter outfit generation."
+                return "Smarter outfit generation isn't supported on this device. Apple Intelligence requires an iPhone 15 Pro or newer (or a compatible iPad/Mac) to run these models on-device. You can still use standard outfit generation without this feature."
             case .unavailable(.appleIntelligenceNotEnabled):
-                return "Please enable Apple Intelligence in Settings to get advanced outfit plans."
+                return "Advanced outfit plans need Apple Intelligence turned on. Go to Settings > Apple Intelligence & Siri and enable Apple Intelligence, then come back here to try again. It may take a few minutes to finish setting up after you enable it."
             case .unavailable(.modelNotReady):
-                return "The advanced generation model is currently preparing."
+                return "The advanced generation model is still downloading or preparing on your device. This usually finishes within a few minutes, especially if you're on Wi-Fi and your device is charging. Feel free to check back shortly."
             default:
-                return "The advanced generation model is currently unavaliable."
+                return "The advanced generation model isn't available right now. Try closing and reopening the app, and if the issue continues, check that your device is updated to the latest iOS version and that Apple Intelligence is properly configured in Settings."
         }
     }
     
@@ -65,7 +65,7 @@ struct OutfitCardView: View {
                     accessories: selectedOutfit?.accessories ?? [])
                 
                 VStack(spacing: 6) {
-                    if model.isAvailable {
+                    if model.isAvailable && selectedOutfit?.rationale != nil {
                         HStack {
                             Label("Why this works", systemImage: "sparkles")
                                 .font(.system(size: 17, weight: .bold))
@@ -76,10 +76,12 @@ struct OutfitCardView: View {
 
                     ZStack(alignment: .topLeading) {
                         if model.isAvailable {
-                            VStack {
-                                Text(selectedOutfit?.rationale ?? "")
-                                    .font(.system(size: 14))
-                                    .padding()
+                            if selectedOutfit?.rationale != nil {
+                                VStack {
+                                    Text(selectedOutfit?.rationale ?? "")
+                                        .font(.system(size: 14))
+                                        .padding()
+                                }
                             }
                         } else {
                             VStack {
@@ -87,7 +89,7 @@ struct OutfitCardView: View {
                                     Image(systemName: "exclamationmark.circle.fill")
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundStyle(.gray)
-                                    Text(modelAvalibility ?? "")
+                                    Text(modelAvailability ?? "")
                                         .font(.system(size: 15))
                                         .foregroundStyle(.gray)
                                 }
@@ -98,6 +100,7 @@ struct OutfitCardView: View {
                     .frame(minWidth: 300, maxWidth: 500)
                     .background(.ultraThinMaterial)
                     .cornerRadius(17)
+
                 }
                 .padding()
             }
