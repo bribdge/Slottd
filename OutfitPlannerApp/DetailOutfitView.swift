@@ -12,6 +12,7 @@ import EventKit
 struct DetailOutfitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var context
     
     var calendarManager: CalendarManager
     var title: String
@@ -19,6 +20,8 @@ struct DetailOutfitView: View {
     
     @Query private var dailyOutfitList: [DailyOutfitList]
     @State private var selectedEventIdentifier: String? = nil
+    
+    @State private var showConfirmation = false
     
     var backgroundColor: Color {
         if colorScheme == .light {
@@ -152,8 +155,39 @@ struct DetailOutfitView: View {
             .navigationTitle(title)
         }
         .background(backgroundColor)
-        
-
+        .toolbar {
+            ToolbarItem {
+                Button("Unstar", systemImage: "star.slash") {
+                    showConfirmation = true
+                }
+                .foregroundStyle(.red)
+                .confirmationDialog("Delete?", isPresented: $showConfirmation) {
+                    Button("Unstar", role: .destructive) {
+                        if selectedOutfit.occasionIdentifier == nil {
+                            if selectedOutfit.sourceID == dailyOutfitList[0].dailyOutfit.id {
+                                dailyOutfitList[0].dailyOutfit.isStarred = false
+                            }
+                        } else {
+                            if let editingOutfit = dailyOutfitList[0].eventOutfits.first(where: { $0.id == selectedOutfit.sourceID }) {
+                                editingOutfit.isStarred = false
+                                
+                                try? context.save()
+                            }
+                        }
+                        
+                        context.delete(selectedOutfit)
+                        
+                        try? context.save()
+                        
+                        dismiss()
+                    }
+                    Button("Cancel", role: .cancel) {
+                       showConfirmation = false
+                    }
+                }
+                
+            }
+        }
     }
     
     private func convertStarredOutfitToOutfit(starredOutfit: StarredOutfit) -> Outfit {
