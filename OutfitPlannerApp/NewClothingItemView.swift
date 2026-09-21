@@ -73,18 +73,6 @@ struct NewClothingItemView: View {
                             .ignoresSafeArea()
                     }
                     .presentationBackground(.black)
-                    
-                    if (imageData != nil) {
-                        Button {
-                            withAnimation(.easeInOut) {
-                                imageData = nil
-                            }
-                        } label: {
-                            Label("Remove Image", systemImage: "xmark")
-                                .foregroundStyle(.red)
-                        }
-
-                    }
                 }
                 
             }

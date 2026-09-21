@@ -40,40 +40,23 @@ struct ClothingItemsView: View {
         NavigationStack {
             VStack {
                 List {
-                    if isSearching {
-                        ForEach(searchResults) { item in
-                            NavigationLink(value: item) {
-                                VStack(alignment: .leading) {
-                                    Text(item.name)
-                                        .frame(alignment: .leading)
-                                        .font(.headline)
-                                    Text("\(item.color.rawValue), \(item.type.rawValue)")
-                                        .frame(alignment: .leading)
-                                        .font(.subheadline)
-                                }
+                    ForEach(isSearching ? searchResults : clothingItems) { item in
+                        NavigationLink(value: item) {
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .frame(alignment: .leading)
+                                    .font(.headline)
+                                Text("\(item.color.rawValue), \(item.type.rawValue)")
+                                    .frame(alignment: .leading)
+                                    .font(.subheadline)
                             }
-                            .listRowBackground(listColor)
                         }
-                    } else {
-                        ForEach(clothingItems) { item in
-                            NavigationLink(value: item) {
-                                VStack(alignment: .leading) {
-                                    Text(item.name)
-                                        .frame(alignment: .leading)
-                                        .font(.headline)
-                                    Text("\(item.color.rawValue), \(item.type.rawValue)")
-                                        .frame(alignment: .leading)
-                                        .font(.subheadline)
-                                }
-                            }
-                            .listRowBackground(listColor)
-                        }
-                        .onDelete(perform: removeClothingItem)
+                        .listRowBackground(listColor)
                     }
                 }
                 .scrollContentBackground(.hidden)
                 .navigationDestination(for: ClothingItem.self) { item in
-                    EditClothingItemView(selectedClothingItem: item)
+                    EditClothingItemView(selectedClothingItem: item, image: UIImage(data: item.image!))
                 }
                 .searchable(
                     text: $searchQuery,

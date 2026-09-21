@@ -58,7 +58,7 @@ struct PlaceholderOutfitModuleView: View {
                     }
                     .padding([.top, .leading], 20)
                     
-                    OutfitCardView(eventIdentifier: selectedEventIdentifier, calendarManager: calendarManager)
+                    Spacer()
                     
                     
                     HStack(spacing: 10) {

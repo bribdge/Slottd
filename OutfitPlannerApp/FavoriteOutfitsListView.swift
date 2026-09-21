@@ -59,7 +59,7 @@ struct FavoriteOutfitsListView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .navigationDestination(for: StarredOutfit.self) { outfit in
-                    DetailOutfitView(calendarManager: calendarManager, title: outfit.name, selectedOutfit: outfit)
+                    DetailStarredOutfitView(calendarManager: calendarManager, title: outfit.name, selectedOutfit: outfit)
                 }
                 .searchable(
                     text: $searchQuery,

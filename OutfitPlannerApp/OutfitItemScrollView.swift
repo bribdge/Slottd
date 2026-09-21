@@ -6,36 +6,51 @@
 import SwiftUI
 
 struct OutfitItemScrollView: View {
-    var top: ClothingItem?
-    var bottom: ClothingItem?
-    var footwear: ClothingItem?
-    var accessories: [ClothingItem]
+    @Binding var selectedTop: ClothingItem?
+    @Binding var selectedBottom: ClothingItem?
+    @Binding var selectedFootwear: ClothingItem?
+    @Binding var selectedAccessories: [ClothingItem]
+    
+    @Binding var isAnimating: Bool
+    @Binding var isEditing: Bool
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 15) {
-                ClothingItemCardView(item: top)
+            HStack(spacing: 0) {
+                ClothingItemCardView(item: $selectedTop, isEditing: $isEditing)
                     .padding(.leading)
 
-                if bottom != nil {
-                    ClothingItemCardView(item: bottom)
+
+                if selectedBottom != nil {
+                    ClothingItemCardView(item: $selectedBottom, isEditing: $isEditing)
+                        .padding(.leading)
+ 
                 }
 
-                ClothingItemCardView(item: footwear)
-                    .padding(.trailing, accessories.isEmpty ? 0 : 10)
+                ClothingItemCardView(item: $selectedFootwear, isEditing: $isEditing)
+                    .padding(.leading)
+                    .padding(.trailing, selectedAccessories.isEmpty ? 10 : 0)
 
-                if !accessories.isEmpty {
-                    AccessoriesCardView(accessories: accessories)
+                if !selectedAccessories.isEmpty || isEditing {
+                    AccessoriesCardView(selectedAccessories: $selectedAccessories, isEditing: $isEditing)
+                        .padding(.trailing, 10)
+ 
                 }
             }
+            .scrollTargetLayout()
         }
+        .scrollTargetBehavior(.viewAligned)
         .scrollIndicators(.hidden)
     }
 }
 
 private struct ClothingItemCardView: View {
-    var item: ClothingItem?
+    @Binding var item: ClothingItem?
     @State private var uiImage: UIImage?
+    
+    @Binding var isEditing: Bool
+    
+    @State private var clothingItemSelectorIsPresented = false
 
     var body: some View {
         VStack(spacing: 10) {
@@ -61,12 +76,24 @@ private struct ClothingItemCardView: View {
                 .lineLimit(1)
                 .font(.system(size: 14))
         }
+        .wiggle(isEnabled: isEditing)
+        .onTapGesture {
+            if isEditing {
+                clothingItemSelectorIsPresented.toggle()
+            }
+        }
+        .sheet(isPresented: $clothingItemSelectorIsPresented) {
+            NavigationStack {
+                ClothingItemSelectorView(selectedClothingItem: $item)
+            }
+        }
         .task(id: item?.image) {
             guard let data = item?.image else { uiImage = nil; return } // loads in the image in background to prevent blocking the main thread
             uiImage = UIImage(data: data)
         }
     }
 }
+
 
 #Preview {
     MainTabView()

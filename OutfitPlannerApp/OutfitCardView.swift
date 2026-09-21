@@ -15,14 +15,15 @@ struct OutfitCardView: View {
     
     var eventIdentifier: String?
     
+    @Binding var isEditing: Bool
+    @Binding var isAnimating: Bool
+    
     var eventTitle: String? {
         if let identifier = eventIdentifier {
             return calendarManager.eventStore.event(withIdentifier: identifier)?.title ?? "Unknown Event"
         }
         return nil
     }
-    
-    var calendarManager: CalendarManager
     
     var selectedOutfit: Outfit? {
         guard let daily = dailyOutfitList.first else {
@@ -35,6 +36,14 @@ struct OutfitCardView: View {
         
         return daily.eventOutfits.first(where: { $0.occasionIdentifier == eventIdentifier })
     }
+    
+    var calendarManager: CalendarManager
+    
+    @Binding var selectedTop: ClothingItem?
+    @Binding var selectedBottom: ClothingItem?
+    @Binding var selectedFootwear: ClothingItem?
+    @Binding var selectedAccessories: [ClothingItem]
+    
     @State private var selectedEvent: EKEvent? = nil
     
     let model = SystemLanguageModel.default
@@ -59,57 +68,57 @@ struct OutfitCardView: View {
             VStack(spacing: 0) {
 
                 OutfitItemScrollView(
-                    top: selectedOutfit?.top,
-                    bottom: selectedOutfit?.bottom,
-                    footwear: selectedOutfit?.footwear,
-                    accessories: selectedOutfit?.accessories ?? [])
+                    selectedTop: $selectedTop,
+                    selectedBottom: $selectedBottom,
+                    selectedFootwear: $selectedFootwear,
+                    selectedAccessories: $selectedAccessories,
+                    isAnimating: $isAnimating,
+                    isEditing: $isEditing)
                 
                 VStack(spacing: 6) {
-                    if model.isAvailable && selectedOutfit?.rationale != nil {
+                    if model.isAvailable {
                         HStack {
                             Label("Why this works", systemImage: "sparkles")
                                 .font(.system(size: 17, weight: .bold))
                             Spacer()
                         }
                         .padding(.leading)
-                    }
-
-                    ZStack(alignment: .topLeading) {
-                        if model.isAvailable {
-                            if selectedOutfit?.rationale != nil {
-                                VStack {
-                                    Text(selectedOutfit?.rationale ?? "")
-                                        .font(.system(size: 14))
-                                        .padding()
-                                }
-                            }
-                        } else {
+                        ZStack(alignment: .topLeading) {
                             VStack {
-                                HStack(spacing: 15) {
-                                    Image(systemName: "exclamationmark.circle.fill")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundStyle(.gray)
-                                    Text(modelAvailability ?? "")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(.gray)
-                                }
-                                .padding()
+                                Text(selectedOutfit?.rationale ?? "")
+                                    .font(.system(size: 14))
+                                    .padding()
                             }
                         }
+                        .frame(minWidth: 300, maxWidth: 500)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(17)
+                    } else {
+                        ZStack(alignment: .topLeading) {
+                            HStack(spacing: 15) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundStyle(.gray)
+                                Text(modelAvailability ?? "")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(.gray)
+                            }
+                            .padding()
+                        }
+                        .frame(minWidth: 300, maxWidth: 500)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(17)
                     }
-                    .frame(minWidth: 300, maxWidth: 500)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(17)
 
                 }
                 .padding()
             }
         } // vertical scroll
         .scrollIndicators(.hidden)
-
+        
     }
 }
 
 #Preview {
-    OutfitCardView(calendarManager: CalendarManager())
+    MainTabView()
 }

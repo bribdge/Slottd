@@ -302,9 +302,6 @@ func separateClothingByType(clothingItems: [ClothingItem]) -> (tops: [ClothingIt
 
 @Generable()
 struct AccessoryResponse {
-    @Guide(description: "A value representing if the selecte outfit even NEEDS accessories. Return true if it does. Be strict.")
-    var outfitNeedsAccessories: Bool
-    
     @Guide(description: "The index(es) of the accessories you chose.", .element(.range(0...7)))
     var indexes: [Int]
     
@@ -317,7 +314,7 @@ struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
     var index: Int
     
-    @Guide(description: "A VERY brief, casual reason this outfit works, and why it fits the occasion (If provided). Never reference the other choices.")
+    @Guide(description: "A VERY short reason why this outfit works, and why it fits the occasion. If no occasion is provided, explain why the outfit works as a regular daily outfit. Never reference the other choices.")
     var rationale: String
 }
 

@@ -18,6 +18,12 @@ struct SelectedOutfitModuleView: View {
     @Query private var clothingItems: [ClothingItem]
 
     @Binding var isGenerating: Bool
+    
+    @State private var notEditingButtonsOpacity = 1.0
+    @State private var editingButtonsOpacity = 0.0
+    
+    @State private var isAnimating = false
+    @State private var isEditing = false
 
     var calendarManager: CalendarManager
     @Binding var selectedEventIdentifier: String?
@@ -32,6 +38,11 @@ struct SelectedOutfitModuleView: View {
         }
         return nil
     }
+    
+    @State private var selectedTop: ClothingItem? = nil
+    @State private var selectedBottom: ClothingItem? = nil
+    @State private var selectedFootwear: ClothingItem? = nil
+    @State private var selectedAccessories: [ClothingItem] = []
 
     var backgroundColor: Color {
         if colorScheme == .light {
@@ -66,11 +77,15 @@ struct SelectedOutfitModuleView: View {
                                     if let event = calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier!) {
                                         HStack {
                                             Image(systemName: "clock")
+                                                .foregroundStyle(.gray)
+                                                .font(.system(size: 15, weight: .regular, design: .default))
                                             Text(event.isAllDay ?
-                                                "All Day"
+                                                 "All Day"
                                                  :
-                                                "\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())"
-                                                )
+                                                    "\(event.startDate, format: .dateTime.hour().minute()) - \(event.endDate, format: .dateTime.hour().minute())"
+                                            )
+                                            .foregroundStyle(.gray)
+                                            .font(.system(size: 15, weight: .regular, design: .default))
                                             Spacer()
                                         }
                                     }
@@ -86,95 +101,178 @@ struct SelectedOutfitModuleView: View {
                             .padding([.top, .leading], 20)
                         }
                         
-                        Button {
-                            let pressImpact = UIImpactFeedbackGenerator(style: .medium)
-                            pressImpact.impactOccurred()
-                            
-                            if selectedOutfit?.isStarred == true {
-                                selectedOutfit?.isStarred = false
-                                if let starredOutfit = starredOutfits.first(where: { $0.sourceID == selectedOutfit?.id }) {
-                                    context.delete(starredOutfit)
+                        HStack(spacing: 1) {
+                            Button {
+                                if !isEditing {
+                                    let pressImpact = UIImpactFeedbackGenerator(style: .medium)
+                                    pressImpact.impactOccurred()
                                     
-                                    try? context.save()
-                                }
-                            } else {
-                                selectedOutfit?.isStarred = true
-                                if let convertedOutfit = convertOutfitToStarredOutfit(outfit: selectedOutfit, occassionTitle: selectedEventIdentifier == nil ? nil : calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier!)?.title) {
-                                    context.insert(convertedOutfit)
+                                    if selectedOutfit?.isStarred == true {
+                                        selectedOutfit?.isStarred = false
+                                        if let starredOutfit = starredOutfits.first(where: { $0.sourceID == selectedOutfit?.id }) {
+                                            context.delete(starredOutfit)
+                                            
+                                            try? context.save()
+                                        }
+                                    } else {
+                                        selectedOutfit?.isStarred = true
+                                        if let convertedOutfit = convertOutfitToStarredOutfit(outfit: selectedOutfit, occassionTitle: selectedEventIdentifier == nil ? nil : calendarManager.eventStore.event(withIdentifier: selectedEventIdentifier!)?.title) {
+                                            context.insert(convertedOutfit)
+                                            
+                                            try? context.save()
+                                        }
+                                    }
+                                } else {
+                                    selectedTop = selectedOutfit?.top
+                                    selectedBottom = selectedOutfit?.bottom
+                                    selectedFootwear = selectedOutfit?.footwear
                                     
-                                    try? context.save()
+                                    if let accessories = selectedOutfit?.accessories {
+                                        selectedAccessories = accessories
+                                    }
+                                    
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        notEditingButtonsOpacity = isEditing ? 1.0 : 0.0
+                                        editingButtonsOpacity = isEditing ? 0.0 : 1.0
+                                    }
+                                    
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        isEditing = false
+                                        isAnimating = false
+                                    }
                                 }
-                            }
-                        } label: {
-                            Image(systemName: (selectedOutfit?.isStarred == true) ? "star.fill" : "star")
+                            } label: {
+                                ZStack {
+                                    Image(systemName: (selectedOutfit?.isStarred == true) ? "star.fill" : "star")
+                                        .opacity(notEditingButtonsOpacity)
+                                    
+                                    Image(systemName: "xmark")
+                                        .opacity(editingButtonsOpacity)
+                                }
+                                .frame(width: isEditing ? 60 : 40, height: 40)
                                 .foregroundStyle(.white)
-                                .padding(7)
-                                .glassEffect(.regular.interactive().tint(buttonColor), in: .circle)
+                                .glassEffect(.clear.tint(isEditing ? .red : buttonColor), in:
+                                                UnevenRoundedRectangle(
+                                                    topLeadingRadius: 15,
+                                                    bottomLeadingRadius: 15,
+                                                    bottomTrailingRadius: 5,
+                                                    topTrailingRadius: 5
+                                                ))
+                                
+                            }
+                            .shadow(color: buttonColor, radius: (isEditing ? 0 : (selectedOutfit?.isStarred ?? false) ? 7 : 0))
+                            
+                            Button {
+                                regenerateOutfit()
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .opacity(notEditingButtonsOpacity)
+                                    .frame(width: isEditing ? 0 : 40, height: 40)
+                                    .foregroundStyle(.white)
+                                    .glassEffect(.clear.tint(buttonColor), in: RoundedRectangle(cornerRadius: 5))
+                            }
+
+                            
+                            Button {
+                                if isEditing {
+                                    selectedOutfit?.top = selectedTop
+                                    selectedOutfit?.bottom = selectedBottom
+                                    selectedOutfit?.footwear = selectedFootwear
+                                    
+                                    selectedOutfit?.accessories = selectedAccessories
+                                }
+                                
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    notEditingButtonsOpacity = isEditing ? 1.0 : 0.0
+                                    editingButtonsOpacity = isEditing ? 0.0 : 1.0
+                                }
+                                
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isEditing = isEditing ? false : true
+                                    isAnimating = isAnimating ? false : true
+                                }
+                                
+                                
+                            } label: {
+                                ZStack {
+                                    Image(systemName: "pencil")
+                                        .opacity(notEditingButtonsOpacity)
+                                    
+                                    Image(systemName: "checkmark")
+                                        .opacity(editingButtonsOpacity)
+                                        
+                                }
+                                .frame(width: isEditing ? 60 : 40, height: 40)
+                                .foregroundStyle(.white)
+                                .glassEffect(.clear.tint(isEditing ? .blue : buttonColor), in:
+                                                UnevenRoundedRectangle(
+                                                    topLeadingRadius: 5,
+                                                    bottomLeadingRadius: 5,
+                                                    bottomTrailingRadius: 15,
+                                                    topTrailingRadius: 15
+                                                ))
+                            }
+                            
                         }
-                        .padding([.top, .trailing], 20)
-                        .shadow(color: buttonColor, radius: (selectedOutfit?.isStarred == true) ? 5 : 0)
+                        .padding([.top, .trailing])
                     }
-                    
-                    
-                    OutfitCardView(eventIdentifier: selectedEventIdentifier, calendarManager: calendarManager)
+                    OutfitCardView(
+                        eventIdentifier: selectedEventIdentifier,
+                        isEditing: $isEditing,
+                        isAnimating: $isAnimating, calendarManager: calendarManager,
+                        selectedTop: $selectedTop,
+                        selectedBottom: $selectedBottom,
+                        selectedFootwear: $selectedFootwear,
+                        selectedAccessories: $selectedAccessories,)
+
                     
                     if (selectedEventIdentifier != nil ?
                         !(dailyOutfitList.first?.eventOutfits.first(where: { $0.occasionIdentifier == selectedEventIdentifier })?.isLockedIn ?? false)
                         :
                             !(dailyOutfitList.first?.dailyOutfit.isLockedIn ?? false)) {
-                        
-                        HStack(spacing: 10) {
-                            Button {
-
-                                regenerateOutfit()
-                                
-                            } label: {
-                                Text("Regenerate")
-                                    .font(.system(size: 15, weight: .bold))
-                                    .padding([.leading, .trailing])
-                                
-                            }
-                            .clipShape(.capsule)
-                            .buttonStyle(.glass)
-                            .padding([.bottom], 10)
-                            
-                            
-                            Button {
-                                if selectedEventIdentifier != nil {
-                                    let editingOutfitIndex = dailyOutfitList.first?.eventOutfits.first(where: { $0.occasionIdentifier == selectedEventIdentifier
-                                    })
-                                    withAnimation() {
-                                        editingOutfitIndex?.isLockedIn = true
-                                    }
-                                } else {
-                                    let editingOutfitIndex = dailyOutfitList.first?.dailyOutfit
-                                    withAnimation() {
-                                        editingOutfitIndex?.isLockedIn = true
-                                    }
-                                }
-                                
-                                try? context.save()
-                            } label: {
-                                Text("Looks Good!")
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .padding([.leading, .trailing])
-
-                            }
-                            .clipShape(.capsule)
-                            .buttonStyle(.glassProminent)
-                            .padding([.bottom], 10)
-                        }
                     }
-                    
+                }
+            }
+        }
+        
+        .animation(.easeInOut, value: selectedEventIdentifier)
+        .frame(minHeight: 300, maxHeight: 500)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 25))
+        .padding([.leading, .trailing, .bottom])
+        
+        .onAppear() {
+            if !isEditing {
+                selectedTop = selectedOutfit?.top
+                selectedBottom = selectedOutfit?.bottom
+                selectedFootwear = selectedOutfit?.footwear
+                
+                if let accessories = selectedOutfit?.accessories {
+                    selectedAccessories = accessories
+                }
+            }
+        }
+        .onDisappear() {
+            if isEditing {
+                selectedTop = selectedOutfit?.top
+                selectedBottom = selectedOutfit?.bottom
+                selectedFootwear = selectedOutfit?.footwear
+                
+                if let accessories = selectedOutfit?.accessories {
+                    selectedAccessories = accessories
                 }
                 
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    notEditingButtonsOpacity = isEditing ? 1.0 : 0.0
+                    editingButtonsOpacity = isEditing ? 0.0 : 1.0
+                }
+                
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isEditing = false
+                    isAnimating = false
+                }
             }
-            
-        } .animation(.easeInOut, value: selectedEventIdentifier)
-            .frame(minHeight: 300, maxHeight: 500)
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 25))
-            .padding([.leading, .trailing, .bottom])
+            print("disappeared")
+        }
     }
 
 

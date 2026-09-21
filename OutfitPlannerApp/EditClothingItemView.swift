@@ -17,6 +17,8 @@ struct EditClothingItemView: View {
     @Bindable var selectedClothingItem: ClothingItem
     @State private var isEditing: Bool = false
     
+    var image: UIImage?
+    
     @State private var selectedItem: PhotosPickerItem? // for photos picker (obviously)
     @State private var showConfirmation = false
     
@@ -35,6 +37,14 @@ struct EditClothingItemView: View {
             return Color(red: 0.95, green: 0.94, blue: 0.93)
         } else {
             return Color(red: 0.11, green: 0.09, blue: 0.08)
+        }
+    }
+    
+    var pickerButtonColor: Color {
+        if colorScheme == .light {
+            return Color(red: 0.65, green: 0.15, blue: 0.15) // Deep elegant crimson
+        } else {
+            return Color(red: 0.91, green: 0.29, blue: 0.29) // Vivid crimson for contrast
         }
     }
     
@@ -68,27 +78,16 @@ struct EditClothingItemView: View {
                 }
                 .listRowBackground(listColor)
                 Section("Clothing Image") {
-                    if !isEditing {
-                        if let selectedImageData = selectedClothingItem.image,
-                           let uiImage = UIImage(data: selectedImageData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 300, height: 300)
-                                .cornerRadius(25)
-                        } else {
-                            Text("No Image Selected.")
-                        }
+                    if let uiImage = image {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 300, height: 300)
+                            .cornerRadius(25)
                     } else {
-                        if let selectedImageData = selectedClothingItem.image,
-                           let uiImage = UIImage(data: selectedImageData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 300, height: 300)
-                                .cornerRadius(25)
-                        }
-                        
+                        Text("No Image Selected.")
+                    }
+                    if isEditing {
                         PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                             Label("Add Photo", systemImage: "photo")
                         }
@@ -106,7 +105,6 @@ struct EditClothingItemView: View {
                 }
                 .listRowBackground(listColor)
             }
-            .tint(listColor)
             .scrollContentBackground(.hidden)
         }
         .background(backgroundColor)
@@ -117,11 +115,13 @@ struct EditClothingItemView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Edit", systemImage: "pencil") {
                         withAnimation() {
-                            isEditing.toggle()
+                            isEditing = true
                         }
                     }
                 }
-                                    ToolbarSpacer(placement: .topBarTrailing)
+                                    
+                ToolbarSpacer(placement: .topBarTrailing)
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Delete", systemImage: "trash") {
                         showConfirmation = true
@@ -147,11 +147,6 @@ struct EditClothingItemView: View {
                         }
                     }
                 }
-            }
-        }
-        .task(id: selectedItem) {
-            if let data = try? await selectedItem?.loadTransferable(type: Data.self) {
-                selectedClothingItem.image = data
             }
         }
     }

@@ -24,7 +24,9 @@ struct HomeView: View {
         private var dateLastOpened = Date.distantPast
     
     var calendarManager: CalendarManager
+    
     @State private var isGenerating = false
+    
     @State private var calendarAccessDenied = false
     @AppStorage("unableToGenerateOutfit") var unableToGenerateOutfit: Bool = false
     
@@ -134,7 +136,9 @@ struct HomeView: View {
         }
         unableToGenerateOutfit = false
 
-        withAnimation { isGenerating = true }
+        withAnimation {
+            isGenerating = true
+        }
 
         for outfitList in dailyOutfitList {
             context.delete(outfitList)
@@ -169,7 +173,9 @@ struct HomeView: View {
             try? context.save()
 
             dateLastOpened = Date()
-            withAnimation { isGenerating = false }
+            withAnimation {
+                isGenerating = false
+            }
         }
     }
 }
