@@ -11,13 +11,6 @@ import SwiftData
 struct MainTabView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State var calendarManager: CalendarManager = CalendarManager()
-    var tabColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.65, green: 0.15, blue: 0.15) // Deep elegant crimson
-        } else {
-            return Color(red: 0.91, green: 0.29, blue: 0.29) // Vivid crimson for contrast
-        }
-    }
     
     var body: some View {
         TabView {
@@ -27,11 +20,8 @@ struct MainTabView: View {
             ClothingItemsView().tabItem() {
                 Label("Clothing", systemImage: "hanger")
             }
-            FavoriteOutfitsListView(calendarManager: calendarManager).tabItem() {
-                Label("Favorites", systemImage: "star")
-            }
         }
-        .tint(tabColor)
+        .tint(Color.button)
     }
 }
 

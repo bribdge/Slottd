@@ -19,23 +19,6 @@ struct ClothingItemsView: View {
     
     @State private var newClothingItemSheetIsPresented = false
     
-    var backgroundColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.98, green: 0.97, blue: 0.96) 
-        } else {
-            return Color(red: 0.07, green: 0.05, blue: 0.04)
-        }
-    }
-    
-    var listColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.95, green: 0.94, blue: 0.93)
-        } else {
-            return Color(red: 0.11, green: 0.09, blue: 0.08)
-        }
-    }
-    
-    
     var body: some View {
         NavigationStack {
             VStack {
@@ -51,19 +34,24 @@ struct ClothingItemsView: View {
                                     .font(.subheadline)
                             }
                         }
-                        .listRowBackground(listColor)
+                        .listRowBackground(Color.list)
                     }
                 }
                 .scrollContentBackground(.hidden)
                 .navigationDestination(for: ClothingItem.self) { item in
-                    EditClothingItemView(selectedClothingItem: item, image: UIImage(data: item.image!))
+                    if let data = item.image, let uiImage = UIImage(data: data) {
+                        EditClothingItemView(selectedClothingItem: item, image: uiImage)
+                    } else {
+                        // Provide a sane fallback; using an empty UIImage() here to avoid crashes.
+                        EditClothingItemView(selectedClothingItem: item, image: UIImage())
+                    }
                 }
                 .searchable(
                     text: $searchQuery,
                     placement: .automatic,
                     prompt: "Search"
                 )
-                .tint(listColor)
+                .tint(Color.list)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button("New Clothing Item", systemImage: "plus") {
@@ -73,7 +61,7 @@ struct ClothingItemsView: View {
                 }
             }
             .navigationTitle("Clothing Items")
-            .background(backgroundColor)
+            .background(Color.background)
         }
         .sheet(isPresented: $newClothingItemSheetIsPresented) {
             NavigationStack {

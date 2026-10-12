@@ -41,6 +41,7 @@ enum ClothingColor: String, Codable, CaseIterable, Identifiable {
     
     var id: Self { self }
 }
+
 enum ClothingType: String, Codable, CaseIterable, Identifiable {
     // Upper Body
     case top = "Top"
@@ -71,10 +72,6 @@ class ClothingItem {
     var outfitsAsFootwear: [Outfit] = []
 //    var attire: ClothingAttire
     
-    var starredOutfitsAsTop: [StarredOutfit] = []
-    var starredOutfitsAsBottom: [StarredOutfit] = []
-    var starredOutfitsAsFootwear: [StarredOutfit] = []
-    
     init(/*image: PhotosPickerItem, */name: String, style: ClothingStyle, color: ClothingColor, type: ClothingType, image: Data?, parentOutfits: [Outfit]?/*, attire: ClothingAttire*/) {
 //        self.image = image
         self.name = name
@@ -88,36 +85,6 @@ class ClothingItem {
     var description: String {
         "\(name) (\(style.rawValue), \(color.rawValue))"
         }
-}
-
-@Model
-class StarredOutfit {
-    var name: String
-    var sourceID: UUID
-    
-    @Relationship(deleteRule: .nullify, inverse: \ClothingItem.starredOutfitsAsTop)
-    var top: ClothingItem?
-    
-    @Relationship(deleteRule: .nullify, inverse: \ClothingItem.starredOutfitsAsBottom)
-    var bottom: ClothingItem?
-
-    var accessories: [ClothingItem] = []
-    
-    @Relationship(deleteRule: .nullify, inverse: \ClothingItem.starredOutfitsAsFootwear)
-    var footwear: ClothingItem?
-    
-    var occasionIdentifier: String?
-    var rationale: String?
-    init(name: String, top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, sourceID: UUID) {
-        self.name = name
-        self.accessories = accessories
-        self.footwear = footwear
-        self.top = top
-        self.bottom = bottom
-        self.occasionIdentifier = occasionIdentifier
-        self.rationale = rationale
-        self.sourceID = sourceID
-    }
 }
 
 @Model
@@ -314,7 +281,7 @@ struct OutfitResponse {
     @Guide(description: "The index of the outfit you have chosen.", .range(0...7))
     var index: Int
     
-    @Guide(description: "A VERY short reason why this outfit works, and why it fits the occasion. If no occasion is provided, explain why the outfit works as a regular daily outfit. Never reference the other choices.")
+    @Guide(description: "A casual but not too short reason why this outfit works, and why it fits the occasion. Never reference the other choices. Never reference acessories, outerwear, or other clothing items. Lean more towards a description of what the outfit can do rather than why it works.")
     var rationale: String
 }
 
@@ -431,9 +398,11 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
             randomOutfitCombinationDescriptions.append(randomOutfit.aiDescription)
             break inner
             }
-        if accessories != [] {
-            randomAccessories.append(accessories.randomElement()!)
-            randomAccessoryDescriptions.append(accessories.randomElement()!.description)
+        if !accessories.isEmpty {
+            if let picked = accessories.randomElement() {
+                randomAccessories.append(picked)
+                randomAccessoryDescriptions.append(picked.description)
+            }
         }
         
         }
@@ -453,7 +422,7 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
                 CRITERIA FOR "FASHIONABLE":
                 - Color Harmony: Look for complementary colors or intentional tonal palettes.
                 - Style Cohesion: High marks for pieces that share a cohesive aesthetic (e.g., Minimalist + Minimalist, Retro + Bohemian). Avoid jarring style clashes (e.g., Avant Garde + Sporty).
-                \(occasionTitle == "" ? "" : "- Outfit Occasion: The name of this outfit's occasion is \(occasionTitle). Choose an outfit that best suits this occasion.")
+                \(occasionTitle == "" ? "- A regular day. Could be out and about or lounging around inside." : "- Outfit Occasion: The name of this outfit's occasion is \(occasionTitle). Choose an outfit that best suits this occasion.")
             
                 Always prioritize making the outfit fit the occasion rather than what looks most stylish.
             
@@ -488,6 +457,7 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
             chosenOutfit.rationale = response.content.rationale
             return chosenOutfit
         } catch {
+            print(error)
             return generateDailyOutfitFallback(tops: tops, bottoms: bottoms, footwear: footwear, occasionTitle: occasionTitle, occasionIdentifier: occasionIdentifier)
         }
     }
@@ -498,10 +468,10 @@ func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], 
     var isValid: Bool = true
     
     let titleLowercased = occasionTitle.lowercased()
-    let isSportyEvent = sportyKeywords.contains(titleLowercased)
-    let isFormalEvent = formalKeywords.contains(titleLowercased)
-    let isComfyEvent = comfyKeywords.contains(titleLowercased)
-    let isBoldEvent = boldKeywords.contains(titleLowercased)
+    let isSportyEvent = sportyKeywords.contains { titleLowercased.contains($0) }
+    let isFormalEvent = formalKeywords.contains { titleLowercased.contains($0) }
+    let isComfyEvent  = comfyKeywords.contains { titleLowercased.contains($0) }
+    let isBoldEvent   = boldKeywords.contains { titleLowercased.contains($0) }
     
     let filteredTops = tops.filter { item in
         if isSportyEvent { return item.style == .sporty || item.style == .comfy }
@@ -553,3 +523,4 @@ func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], 
         }
     }
 }
+

@@ -24,30 +24,6 @@ struct EditClothingItemView: View {
     
     @State private var showingCamera = false
     
-    var backgroundColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.98, green: 0.97, blue: 0.96)
-        } else {
-            return Color(red: 0.07, green: 0.05, blue: 0.04)
-        }
-    }
-    
-    var listColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.95, green: 0.94, blue: 0.93)
-        } else {
-            return Color(red: 0.11, green: 0.09, blue: 0.08)
-        }
-    }
-    
-    var pickerButtonColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.65, green: 0.15, blue: 0.15) // Deep elegant crimson
-        } else {
-            return Color(red: 0.91, green: 0.29, blue: 0.29) // Vivid crimson for contrast
-        }
-    }
-    
     var body: some View {
         VStack {
             List {
@@ -58,7 +34,7 @@ struct EditClothingItemView: View {
                         Text(selectedClothingItem.name)
                     }
                 }
-                .listRowBackground(listColor)
+                .listRowBackground(Color.list)
                 Section("Clothing Item Info") {
                     Picker("Type", selection: $selectedClothingItem.type) {
                         ForEach(ClothingType.allCases) { type in
@@ -76,7 +52,7 @@ struct EditClothingItemView: View {
                         }
                     }.disabled(isEditing ? false : true)
                 }
-                .listRowBackground(listColor)
+                .listRowBackground(Color.list)
                 Section("Clothing Image") {
                     if let uiImage = image {
                         Image(uiImage: uiImage)
@@ -103,11 +79,11 @@ struct EditClothingItemView: View {
                         }
                     }
                 }
-                .listRowBackground(listColor)
+                .listRowBackground(Color.list)
             }
             .scrollContentBackground(.hidden)
         }
-        .background(backgroundColor)
+        .background(Color.background)
         .navigationTitle("Edit \(selectedClothingItem.name)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

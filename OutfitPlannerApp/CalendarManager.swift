@@ -48,7 +48,7 @@ class CalendarManager {
         let predicate = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: calendars)
         
         let fetchedEvents = eventStore.events(matching: predicate)
-        events = fetchedEvents.sorted{ $0.startDate < $1.endDate }
+        events = fetchedEvents.sorted { $0.startDate < $1.startDate }
     }
 }
 

@@ -16,14 +16,6 @@ struct AccessoriesCardView: View {
     
     @Binding var isEditing: Bool
     
-    var buttonColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.65, green: 0.15, blue: 0.15) // Deep elegant crimson
-        } else {
-            return Color(red: 0.91, green: 0.29, blue: 0.29) // Vivid crimson for contrast
-        }
-    }
-    
     
     var body: some View {
         VStack {
@@ -127,7 +119,7 @@ struct AccessoriesCardView: View {
                         } else {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 15)
-                                    .foregroundStyle(buttonColor)
+                                    .foregroundStyle(Color.button)
                                     .scaledToFill()
                                     .frame(width: 60, height: 60)
                                     .clipped()

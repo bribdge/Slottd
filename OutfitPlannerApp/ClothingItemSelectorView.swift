@@ -15,22 +15,6 @@ struct ClothingItemSelectorView: View {
     
     @Binding var selectedClothingItem: ClothingItem?
     
-    var backgroundColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.98, green: 0.97, blue: 0.96)
-        } else {
-            return Color(red: 0.07, green: 0.05, blue: 0.04)
-        }
-    }
-    
-    var listColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.95, green: 0.94, blue: 0.93)
-        } else {
-            return Color(red: 0.11, green: 0.09, blue: 0.08)
-        }
-    }
-    
     @State var searchResults: [ClothingItem] = []
     @State private var searchQuery = ""
     var isSearching: Bool { searchQuery != "" }
@@ -63,12 +47,12 @@ struct ClothingItemSelectorView: View {
                             }
                         }
                     }
-                    .listRowBackground(listColor)
+                    .listRowBackground(Color.list)
                 }
             }
             .contentMargins(.top, 0, for: .scrollContent) // removes the margin at the top of the list
             .scrollContentBackground(.hidden)
-            .background(backgroundColor)
+            .background(Color.background)
             .searchable(
                 text: $searchQuery,
                 placement: .automatic,

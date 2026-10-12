@@ -45,32 +45,16 @@ struct HomeView: View {
         return nil
     }
     
-    var backgroundColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.98, green: 0.97, blue: 0.96) 
-        } else {
-            return Color(red: 0.07, green: 0.05, blue: 0.04)
-        }
-    }
-
-    var buttonColor: Color {
-        if colorScheme == .light {
-            return Color(red: 0.65, green: 0.15, blue: 0.15) // Deep elegant crimson
-        } else {
-            return Color(red: 0.91, green: 0.29, blue: 0.29) // Vivid crimson for contrast
-        }
-    }
-
-
     var body: some View {
             NavigationStack {
                 ZStack {
-                    backgroundColor
+                    Color(Color.background)
                         .ignoresSafeArea()
                     VStack() {
                         EventPickerModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
+                        
                         if isGenerating || unableToGenerateOutfit {
-                            PlaceholderOutfitModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier, isGenerating: $isGenerating, unableToGenerateOutfit: $unableToGenerateOutfit)
+                            PlaceholderOutfitModuleView(isGenerating: $isGenerating, unableToGenerateOutfit: $unableToGenerateOutfit)
                         } else {
                             SelectedOutfitModuleView(isGenerating: $isGenerating, calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
                         }
