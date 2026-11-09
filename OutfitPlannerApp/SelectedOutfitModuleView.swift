@@ -49,7 +49,10 @@ struct SelectedOutfitModuleView: View {
             VStack {
                 HStack {
                     if let identifier = selectedEventIdentifier {
-                        eventHeaderInfo(identifier: identifier)
+                        HStack {
+                            eventHeaderInfo(identifier: identifier)
+                            Spacer()
+                        }
                     } else {
                         HStack {
                             Text("Daily Outfit")
@@ -74,12 +77,22 @@ struct SelectedOutfitModuleView: View {
                 
             }
         }
-        
-            //        .animation(.easeInOut, value: selectedEventIdentifier)
-        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 25))
+        .animation(.easeInOut, value: selectedEventIdentifier)
+        .glassEffect(.regular.tint(.background.opacity(0.9)), in: RoundedRectangle(cornerRadius: 25))
         .padding([.leading, .trailing, .bottom])
         
+        .onChange(of: selectedOutfit) {
+            selectedTop = selectedOutfit?.top
+            selectedBottom = selectedOutfit?.bottom
+            selectedFootwear = selectedOutfit?.footwear
+            if let accessories = selectedOutfit?.accessories {
+                selectedAccessories = accessories
+            }
+        }
+        
         .onAppear() {
+
+            
             if !isEditing {
                 selectedTop = selectedOutfit?.top
                 selectedBottom = selectedOutfit?.bottom
@@ -101,6 +114,7 @@ struct SelectedOutfitModuleView: View {
         VStack(alignment: .leading) {
             Text(calendarManager.eventStore.event(withIdentifier: identifier)?.title ?? "Unknown Event")
                 .font(.system(size: 24, weight: .bold))
+                .lineLimit(2)
             HStack {
                 if let event = calendarManager.eventStore.event(withIdentifier: identifier) {
                     Image(systemName: "clock")
@@ -180,13 +194,12 @@ struct SelectedOutfitModuleView: View {
 
     
     private func finishEditing() {
-        selectedTop = selectedOutfit?.top
-        selectedBottom = selectedOutfit?.bottom
-        selectedFootwear = selectedOutfit?.footwear
+        selectedOutfit?.top = selectedTop
+        selectedOutfit?.bottom = selectedBottom
+        selectedOutfit?.footwear = selectedFootwear
+        selectedOutfit?.accessories = selectedAccessories
         
-        if let accessories = selectedOutfit?.accessories {
-            selectedAccessories = accessories
-        }
+        try? context.save()
         
         withAnimation(.easeInOut(duration: 0.15)) {
             notEditingButtonsOpacity = 1.0
@@ -223,19 +236,11 @@ struct SelectedOutfitModuleView: View {
         }
     }
 
-
-
-
-
-
-
-
-
     private func regenerateOutfit() {
         let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
         if separatedClothingItems.tops != [] && separatedClothingItems.bottoms != [] && separatedClothingItems.footwear != [] {
             
-            withAnimation() {
+            withAnimation(.easeInOut(duration: 0.25)) {
                 isGenerating = true
             }
             

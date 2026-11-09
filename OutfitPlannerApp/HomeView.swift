@@ -20,8 +20,9 @@ struct HomeView: View {
     var calendar = Calendar.current
     @Environment(\.scenePhase) private var scenePhase
     
-    @AppStorage("dateLastOpened")
-        private var dateLastOpened = Date.distantPast
+    @AppStorage("dateLastOpened") private var dateLastOpened = Date.distantPast
+    
+    @AppStorage("eventCountOnLastOpen") private var eventCountOnLastOpen: Int = 0
     
     var calendarManager: CalendarManager
     
@@ -32,6 +33,7 @@ struct HomeView: View {
     
     @State private var showingInfoSheet = false
     @State private var showingAIInfoSheet = false
+    @State private var showingClothingItemView = false
     
     @State private var selectedEventIdentifier: String? = nil
     var selectedOutfit: Outfit? {
@@ -46,69 +48,78 @@ struct HomeView: View {
     }
     
     var body: some View {
-            NavigationStack {
-                ZStack {
-                    Color(Color.background)
-                        .ignoresSafeArea()
-                    VStack() {
-                        EventPickerModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
-                        
-                        if isGenerating || unableToGenerateOutfit {
-                            PlaceholderOutfitModuleView(isGenerating: $isGenerating, unableToGenerateOutfit: $unableToGenerateOutfit)
-                        } else {
-                            SelectedOutfitModuleView(isGenerating: $isGenerating, calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
-                        }
-                        
+        NavigationStack {
+            ZStack {
+                Color(Color.background)
+                    .ignoresSafeArea()
+                VStack(spacing: 2) {
+                    EventPickerModuleView(calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
+                    
+                    if isGenerating || unableToGenerateOutfit {
+                        PlaceholderOutfitModuleView(isGenerating: $isGenerating, unableToGenerateOutfit: $unableToGenerateOutfit)
+                    } else {
+                        SelectedOutfitModuleView(isGenerating: $isGenerating, calendarManager: calendarManager, selectedEventIdentifier: $selectedEventIdentifier)
                     }
-                    .navigationTitle("Today's Outfits")
                     
                 }
-                .toolbar {
-                    ToolbarItem {
-                        Button {
-                            showingInfoSheet.toggle()
-                        } label: {
-                            Image(systemName: "info")
-                        }
+                .navigationTitle("Today's Outfits")
+                
+            }
+            .toolbar {
+                ToolbarItem() {
+                    Button {
+                        showingInfoSheet.toggle()
+                    } label: {
+                        Image(systemName: "info")
                     }
                 }
-                .sheet(isPresented: $showingInfoSheet) {
-                    BetaInfoSheetView()
-                        .presentationDetents([.fraction(0.45), .fraction(0.6)])
+                ToolbarSpacer(.fixed)
+                ToolbarItem() {
+                    Button {
+                        showingClothingItemView.toggle()
+                    } label: {
+                        Image(systemName: "hanger")
+                            .padding()
+                    }
                 }
+            }
+            
+            .sheet(isPresented: $showingInfoSheet) {
+                BetaInfoSheetView()
+                    .presentationDetents([.fraction(0.45), .fraction(0.6)])
+            }
+            .navigationDestination(isPresented: $showingClothingItemView) {
+                ClothingItemsView()
+            }
         }
         .onChange(of: clothingItems.count) {
             let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
             if separatedClothingItems.tops != [] && separatedClothingItems.bottoms != [] && separatedClothingItems.footwear != [] {
                 unableToGenerateOutfit = false
+                regenerateOutfits()
             } else {
                 unableToGenerateOutfit = true
+
             }
         }
-        
-        .onChange(of: unableToGenerateOutfit) {
-            if !unableToGenerateOutfit {
-                regenerateOutfits()
-            }
-        }
+
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active && !Calendar.current.isDateInToday(dateLastOpened) {
                 regenerateOutfits()
             }
-        }
-        .onAppear {
+            
             Task {
                 if calendarManager.authorizationStatus == .notDetermined {
                     await calendarManager.requestAccess()
                 }
-                calendarManager.fetchEvents()
-                if !Calendar.current.isDateInToday(dateLastOpened) {
-                    regenerateOutfits()
-                }
             }
+            
+            print("calendarManager error message: \(calendarManager.errorMessage ?? "no error")")
+            
+            calendarManager.fetchEvents()
         }
-
     }
+    
     
     private func regenerateOutfits() {
         let separatedClothingItems = separateClothingByType(clothingItems: clothingItems)
@@ -131,7 +142,7 @@ struct HomeView: View {
 
         Task {
             calendarManager.fetchEvents()
-
+            
             let dailyOutfit = await generateDailyOutfit(
                 tops: separatedClothingItems.tops,
                 bottoms: separatedClothingItems.bottoms,
@@ -140,7 +151,7 @@ struct HomeView: View {
                 occasionTitle: "",
                 occasionIdentifier: nil
             )
-
+            
             var eventOutfits: [Outfit] = []
             for event in calendarManager.events {
                 eventOutfits.append(await generateDailyOutfit(
@@ -152,10 +163,10 @@ struct HomeView: View {
                     occasionIdentifier: event.eventIdentifier
                 ))
             }
-
+            
             context.insert(DailyOutfitList(dailyOutfit: dailyOutfit, eventOutfits: eventOutfits))
             try? context.save()
-
+            
             dateLastOpened = Date()
             withAnimation {
                 isGenerating = false

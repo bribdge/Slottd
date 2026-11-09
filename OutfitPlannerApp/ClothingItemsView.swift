@@ -18,56 +18,75 @@ struct ClothingItemsView: View {
     var isSearching: Bool { return searchQuery == "" ? false : true } // computed property! cannot use property wrapper
     
     @State private var newClothingItemSheetIsPresented = false
+    @State private var selectedClothingItem: ClothingItem?
     
     var body: some View {
-        NavigationStack {
-            VStack {
-                List {
-                    ForEach(isSearching ? searchResults : clothingItems) { item in
-                        NavigationLink(value: item) {
+        VStack {
+            List {
+                ForEach(isSearching ? searchResults : clothingItems) { item in
+                    Button {
+                        selectedClothingItem = item
+                    } label: {
+                        HStack {
                             VStack(alignment: .leading) {
                                 Text(item.name)
                                     .frame(alignment: .leading)
                                     .font(.headline)
+                                    .foregroundStyle(.opposite)
                                 Text("\(item.color.rawValue), \(item.type.rawValue)")
                                     .frame(alignment: .leading)
                                     .font(.subheadline)
+                                    .foregroundStyle(.gray)
                             }
+                            Spacer()
+                            Image(systemName: "chevron.forward")
                         }
-                        .listRowBackground(Color.list)
                     }
+                    .listRowBackground(Color.list)
                 }
-                .scrollContentBackground(.hidden)
-                .navigationDestination(for: ClothingItem.self) { item in
-                    if let data = item.image, let uiImage = UIImage(data: data) {
-                        EditClothingItemView(selectedClothingItem: item, image: uiImage)
-                    } else {
-                        // Provide a sane fallback; using an empty UIImage() here to avoid crashes.
-                        EditClothingItemView(selectedClothingItem: item, image: UIImage())
-                    }
-                }
-                .searchable(
-                    text: $searchQuery,
-                    placement: .automatic,
-                    prompt: "Search"
-                )
-                .tint(Color.list)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("New Clothing Item", systemImage: "plus") {
-                            newClothingItemSheetIsPresented.toggle()
-                        }
+            }
+            .scrollContentBackground(.hidden)
+
+            .searchable(
+                text: $searchQuery,
+                placement: .automatic,
+                prompt: "Search"
+            )
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("New Clothing Item", systemImage: "plus") {
+                        newClothingItemSheetIsPresented.toggle()
                     }
                 }
             }
             .navigationTitle("Clothing Items")
             .background(Color.background)
         }
+        
+        .sheet(item: $selectedClothingItem) { item in
+            NavigationStack {
+                if let data = item.image,
+                   let uiImage = UIImage(data: data) {
+                    EditClothingItemView(
+                        selectedClothingItem: item,
+                        image: uiImage
+                    )
+                } else {
+                    EditClothingItemView(
+                        selectedClothingItem: item,
+                        image: UIImage()
+                    )
+                }
+            }
+            .presentationDragIndicator(.visible)
+        }
+        
         .sheet(isPresented: $newClothingItemSheetIsPresented) {
             NavigationStack {
                 NewClothingItemView()
             }
         }
+        
         .onChange(of: searchQuery) {
             self.fetchSearchResults(query: searchQuery) // doing the filtering when search query is changed
         }

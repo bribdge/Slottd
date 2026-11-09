@@ -103,20 +103,18 @@ class Outfit {
     @Relationship(deleteRule: .nullify, inverse: \ClothingItem.outfitsAsFootwear)
     var footwear: ClothingItem?
     var occasionIdentifier: String?
-    var rationale: String?
+    var outfitRationale: String?
+    var accessoryRationale: String?
     var isValid: Bool
-    var isStarred: Bool = false
-    var isLockedIn: Bool = false
-    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, rationale: String?, isValid: Bool, isStarred: Bool = false, isLockedIn: Bool = false, id: UUID) {
+    init(top: ClothingItem?, bottom: ClothingItem?, accessories: [ClothingItem], footwear: ClothingItem?, occasionIdentifier: String?, outfitRationale: String?, accessoryRationale: String? ,isValid: Bool, id: UUID) {
         self.accessories = accessories
         self.footwear = footwear
         self.top = top
         self.bottom = bottom
         self.occasionIdentifier = occasionIdentifier
-        self.rationale = rationale
+        self.outfitRationale = outfitRationale
+        self.outfitRationale = outfitRationale
         self.isValid = isValid
-        self.isStarred = isStarred
-        self.isLockedIn = isLockedIn
         self.id = id
     }
     
@@ -374,14 +372,14 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
         inner: while true {
             count -= 1
             
-            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: false, id: UUID())
+            var randomOutfit = Outfit(top: nil, bottom: nil, accessories: [], footwear: nil, occasionIdentifier: occasionIdentifier, outfitRationale: nil, accessoryRationale: nil, isValid: false, id: UUID())
             
             let randomTop = finalTops.randomElement()
             
             if randomTop?.type == .fullBody {
-                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid, id: UUID())
+                randomOutfit = Outfit(top: randomTop, bottom: nil, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, outfitRationale: nil, accessoryRationale: nil, isValid: isValid, id: UUID())
             } else {
-                randomOutfit = Outfit(top: randomTop, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid, id: UUID())
+                randomOutfit = Outfit(top: randomTop, bottom: finalBottoms.randomElement()!, accessories: [], footwear: finalFootwear.randomElement()!, occasionIdentifier: occasionIdentifier, outfitRationale: nil, accessoryRationale: nil, isValid: isValid, id: UUID())
             }
             
             if count <= 0 {
@@ -448,13 +446,15 @@ func generateDailyOutfit(tops: [ClothingItem], bottoms: [ClothingItem], footwear
             
             if accessories != [] {
                 let accessoryResponse = try await session.respond(to: accessoryPrompt, generating: AccessoryResponse.self)
+                chosenOutfit.accessoryRationale = accessoryResponse.content.rationale
                 
                 for accessoryIndex in accessoryResponse.content.indexes {
                     chosenOutfit.accessories.append(randomAccessories[accessoryIndex])
                 }
             }
             
-            chosenOutfit.rationale = response.content.rationale
+            chosenOutfit.outfitRationale = response.content.rationale
+
             return chosenOutfit
         } catch {
             print(error)
@@ -512,14 +512,14 @@ func generateDailyOutfitFallback(tops: [ClothingItem], bottoms: [ClothingItem], 
         let randomFootwear = finalFootwear.randomElement()!
         
         if count <= 1 {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid, id: UUID())
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, outfitRationale: nil, accessoryRationale: nil, isValid: isValid, id: UUID())
         }
         
         if colorDoesClash(color1: randomTop.color, color2: randomBottom.color) || styleDoesClash(style1: randomTop.style, style2: randomBottom.style) {
             count -= 1
             continue;
         } else {
-            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, rationale: nil, isValid: isValid, id: UUID())
+            return Outfit(top: randomTop, bottom: randomBottom, accessories: [], footwear: randomFootwear, occasionIdentifier: occasionIdentifier, outfitRationale: nil, accessoryRationale: nil, isValid: isValid, id: UUID())
         }
     }
 }

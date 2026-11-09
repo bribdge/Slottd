@@ -13,15 +13,9 @@ struct MainTabView: View {
     @State var calendarManager: CalendarManager = CalendarManager()
     
     var body: some View {
-        TabView {
-            HomeView(calendarManager: calendarManager).tabItem() {
-                Label("Overview", systemImage: "house")
-            }
-            ClothingItemsView().tabItem() {
-                Label("Clothing", systemImage: "hanger")
-            }
+        ZStack {
+            HomeView(calendarManager: calendarManager)
         }
-        .tint(Color.button)
     }
 }
 

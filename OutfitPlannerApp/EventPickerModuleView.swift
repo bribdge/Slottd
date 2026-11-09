@@ -15,34 +15,42 @@
         @Binding var selectedEventIdentifier: String?
      
         var body: some View {
-            ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading) {
                 Text(Date.now.formatted(.dateTime.weekday(.wide).day(.defaultDigits).month(.wide)))
                     .font(.system(size: 18, weight: .bold))
-                    .padding(.leading, 25)
-                    .padding(.top, 20)
-     
-                ZStack {
-                    List {
-                        if calendarManager.events != [] {
-                            Picker("Occasion", selection: $selectedEventIdentifier) {
-                                Label(" Daily Outfit", systemImage: "calendar").tag(nil as String?)
-                                ForEach(calendarManager.events ,id: \.eventIdentifier) { event in
-                                    Text(event.title.trimmingCharacters(in: .whitespaces)).tag(event.eventIdentifier as String?)
-                                }
+                
+                HStack {
+                    Text("Occasion")
+                    Spacer()
+                    if calendarManager.events != [] {
+                        Picker("Occasion", selection: $selectedEventIdentifier) {
+                            Text("Daily Outfit").tag(nil as String?)
+                            ForEach(calendarManager.events ,id: \.eventIdentifier) { event in
+                                
+                                let eventTitle = event.title.trimmingCharacters(in: .whitespaces)
+                                Text(eventTitle.count > 20 ? String(eventTitle.prefix(20)) + "..."
+                                     :
+                                  eventTitle
+                                )
+                                .tag(event.eventIdentifier as String?)
                             }
-                        } else {
-                            Text("No Events Today")
                         }
+                    } else {
+                        Text("No Events Today")
                     }
-                    .scrollDisabled(true)
-                    .frame(minHeight: 85)
-                    .scrollContentBackground(.hidden)
-                    .offset(y: 50)
                 }
+                .padding([.leading, .trailing])
+                .padding([.top, .bottom], 10)
+                .glassEffect()
+            
             }
-            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 25))
-        .frame(height: 120)
+            .padding()
+            .glassEffect(.regular.tint(.background), in: RoundedRectangle(cornerRadius: 25))
         .padding()
     }
  
+}
+
+#Preview {
+    MainTabView()
 }

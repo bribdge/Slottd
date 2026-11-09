@@ -76,16 +76,16 @@ struct OutfitCardView: View {
                     isEditing: $isEditing)
                 
                 VStack(spacing: 6) {
-                    if model.isAvailable {
+                    if model.isAvailable && selectedOutfit?.outfitRationale != nil {
                         HStack {
-                            Label("Why this works", systemImage: "sparkles")
+                            Label("Why this works:", systemImage: "sparkles")
                                 .font(.system(size: 17, weight: .bold))
                             Spacer()
                         }
                         .padding(.leading)
                         ZStack(alignment: .topLeading) {
                             VStack {
-                                Text(selectedOutfit?.rationale ?? "")
+                                Text(selectedOutfit?.outfitRationale ?? "")
                                     .font(.system(size: 14))
                                     .padding()
                             }
@@ -99,7 +99,7 @@ struct OutfitCardView: View {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(.system(size: 20, weight: .bold))
                                     .foregroundStyle(.gray)
-                                Text(modelAvailability ?? "")
+                                Text(modelAvailability ?? "An error occured. Please try again.")
                                     .font(.system(size: 15))
                                     .foregroundStyle(.gray)
                             }
@@ -109,13 +109,15 @@ struct OutfitCardView: View {
                         .background(.ultraThinMaterial)
                         .cornerRadius(17)
                     }
-
                 }
                 .padding()
+                
+                AccessoryScrollView(
+                    selectedAccessories: $selectedAccessories,
+                    isAnimating: $isAnimating,
+                    isEditing: $isAnimating)
             }
         } // vertical scroll
-        .scrollIndicators(.hidden)
-        
     }
 }
 

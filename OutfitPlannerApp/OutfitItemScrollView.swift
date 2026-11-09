@@ -30,12 +30,6 @@ struct OutfitItemScrollView: View {
                 ClothingItemCardView(item: $selectedFootwear, isEditing: $isEditing)
                     .padding(.leading)
                     .padding(.trailing, selectedAccessories.isEmpty ? 10 : 0)
-
-                if !selectedAccessories.isEmpty || isEditing {
-                    AccessoriesCardView(selectedAccessories: $selectedAccessories, isEditing: $isEditing)
-                        .padding(.trailing, 10)
- 
-                }
             }
             .scrollTargetLayout()
         }
@@ -44,7 +38,7 @@ struct OutfitItemScrollView: View {
     }
 }
 
-private struct ClothingItemCardView: View {
+struct ClothingItemCardView: View {
     @Binding var item: ClothingItem?
     @State private var uiImage: UIImage?
     

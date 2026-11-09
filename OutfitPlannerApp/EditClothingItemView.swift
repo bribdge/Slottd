@@ -88,15 +88,14 @@ struct EditClothingItemView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !isEditing {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button("Edit", systemImage: "pencil") {
                         withAnimation() {
                             isEditing = true
                         }
                     }
                 }
-                                    
-                ToolbarSpacer(placement: .topBarTrailing)
+                
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Delete", systemImage: "trash") {
@@ -111,7 +110,7 @@ struct EditClothingItemView: View {
                             dismiss()
                         }
                         Button("Cancel", role: .cancel) {
-                           showConfirmation = false
+                            showConfirmation = false
                         }
                     }
                 }
